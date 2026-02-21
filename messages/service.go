@@ -23,8 +23,8 @@ func IsMessageTypeValid(mt int, conn *websocket.Conn) bool {
 	return true
 }
 
-// Vérification que le dernier message de l'utilisateur à plus de deux secondes.
-// Pour éviter les spam.
+// Vérification que le dernier message de l'utilisateur date de plus de deux secondes.
+// Pour éviter les spams.
 func SafetyMessageRateSending2Seconds(db *sql.DB, senderID string, conn *websocket.Conn) bool {
 	var createdAt time.Time
 	err := db.QueryRow("SELECT CreatedAt FROM messages WHERE SenderID = ? ORDER BY CreatedAt DESC LIMIT 1", senderID).Scan(&createdAt)
