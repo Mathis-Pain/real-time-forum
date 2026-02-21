@@ -670,34 +670,38 @@ footer {
   padding: 15px 20px;
   margin: 10px auto;
       width: 86%;
-    max-width: 900px;
+              max-width: 920px;
+
   border-radius: 10px;
   background-color: rgba(255,255,255,0.9);
   box-shadow: 0 3px 8px rgba(0,0,0,0.1);
   transition: transform 0.2s, box-shadow 0.2s;
+ 
 }
 
 .card span:last-child{
   color: #555;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 #post-card {
     max-height: 150px;
-    overflow-y: scroll;
+    word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 #comment-form {
   display: flex;
   flex-direction: row;
-    align-items: center;
-  background: var(--bg-grey-1);
+  align-items: center;
+  background: var(--bg-grey-3);
   border-radius: 30px;
   padding: 2rem;
-      width: 86%;
-    height: 150px;
+  width: 86%;
+          max-width: 920px;
+
+  height: 150px;
 }
 
 #comment-form textarea {
@@ -708,19 +712,18 @@ border-radius: 18px;
     padding: 10px;
     height: 90px;
     max-height: 90px;
-    overflow-y: scroll;
 }
 
 #comment-btn {
     font-weight: 400;
     border: none;
     margin-left: 10px;
-    background: #c6c4c4;
+    background: var(--bg-grey-2);
     color: white;
     border-radius: 5px;
     padding: 10px;
     cursor: pointer;
-        height: fit-content;
+    height: fit-content;
     width: fit-content;
 }
 
@@ -729,35 +732,22 @@ border-radius: 18px;
 
 }
 
-#comment-card {
+#comments-card {
   display: flex;
-  justify-content: center;
-     background-color: rgba(255,255,255,0.9);
-  box-shadow: 0.3px 8px rgba(0,0,0,0.1);
+  flex-direction: column;
+      width: 86%;
+        max-width: 920px;
+ 
+  background-color: rgba(255,255,255,0.9);
 
 }
 .comment-row {
   max-height: 150px;
   border-radius: 10px;
-  overflow-y: scroll;
   padding: 15px 20px;
-  margin: 10px auto;
-  width: 600px;
+  margin-top: 10px;
   color: var(--text-white);
-  background-color: var(--bg-grey-1);
-}
-
-/* Barres de défilement */
-::-webkit-scrollbar {
-  height: 12px;
-  width: 7px;
-  background: var(--bg-grey-1);
-  margin-right: 5px;
-}
-::-webkit-scrollbar-thumb {
-  background: var(----bg-grey-3);
-  height: 30px;
-}
-::-webkit-scrollbar-corner {
-  background: none;
+  background-color: var(--bg-grey-3);
+   word-wrap: break-word;
+  overflow-wrap: break-word;
 }
