@@ -40,12 +40,14 @@ type IncomingMsg struct {
 	SenderName string
 }
 
+// IsMine ajouté pour l'expéditeur ET le destinataire
 type OutgoingMsg struct {
 	Type      string `json:"type"`
 	Sender    string `json:"sender"`
 	SenderID  int    `json:"sender_id"`
 	Content   string `json:"content"`
 	CreatedAt string `json:"created_at"`
+	IsMine    bool   `json:"is_mine"`
 }
 
 type HistoryMsg struct {
@@ -80,36 +82,33 @@ func HandleWebSocket(db *sql.DB) http.HandlerFunc {
 			return
 		}
 
-		// ✅ METTRE L'UTILISATEUR EN LIGNE DANS LA BASE
+		// Mettre en ligne dans la BDD
 		_, err = db.Exec("UPDATE users SET userOnline = 1 WHERE id = ?", userID)
 		if err != nil {
-			log.Printf("❌ Erreur mise à jour statut connexion: %v\n", err)
+			log.Printf("Erreur mise à jour statut connexion: %v\n", err)
 		} else {
-			log.Printf("✅ %s (ID: %d) est maintenant EN LIGNE\n", name, userID)
+			log.Printf("%s (ID: %d) est maintenant EN LIGNE\n", name, userID)
 		}
 
-		// ✅ Ajouter le client
+		// Ajouter le client
 		clientsMutex.Lock()
 		clients[userID] = &Client{Conn: conn, Name: name}
 		totalClients := len(clients)
 		clientsMutex.Unlock()
 
-		fmt.Printf("✅ Client connecté: %s (ID: %d) | Total: %d\n", name, userID, totalClients)
+		fmt.Printf("Client connecté: %s (ID: %d) | Total: %d\n", name, userID, totalClients)
 
-		// ✅ IMPORTANT : Attendre 100ms que le client soit prêt
+		// Délai pour que le client soit prêt avant d'envoyer
 		time.Sleep(100 * time.Millisecond)
-
-		// ✅ Diffuser APRÈS le délai
 		broadcastOnlineUsers()
 
-		// ✅ Fonction de nettoyage à la déconnexion
+		// Nettoyage à la déconnexion
 		defer func() {
-			// ✅ METTRE L'UTILISATEUR HORS LIGNE DANS LA BASE
 			_, err := db.Exec("UPDATE users SET userOnline = 0 WHERE id = ?", userID)
 			if err != nil {
-				log.Printf("❌ Erreur mise à jour statut déconnexion: %v\n", err)
+				log.Printf("Erreur mise à jour statut déconnexion: %v\n", err)
 			} else {
-				log.Printf("✅ %s (ID: %d) est maintenant HORS LIGNE\n", name, userID)
+				log.Printf("%s (ID: %d) est maintenant HORS LIGNE\n", name, userID)
 			}
 
 			clientsMutex.Lock()
@@ -118,12 +117,12 @@ func HandleWebSocket(db *sql.DB) http.HandlerFunc {
 			clientsMutex.Unlock()
 
 			conn.Close()
-			fmt.Printf("❌ Client déconnecté: %s (ID: %d) | Total: %d\n", name, userID, totalClients)
+			fmt.Printf("Client déconnecté: %s (ID: %d) | Total: %d\n", name, userID, totalClients)
 
-			// ✅ Diffuser APRÈS avoir supprimé le client
 			broadcastOnlineUsers()
 		}()
 
+		// Boucle de lecture des messages
 		for {
 			_, msgBytes, err := conn.ReadMessage()
 			if err != nil {
@@ -167,12 +166,8 @@ func broadcastOnlineUsers() {
 		return
 	}
 
-	fmt.Printf("📡 Diffusion online_users: %d utilisateurs en ligne\n", len(users))
-	for _, u := range users {
-		fmt.Printf("   - ID: %d, Name: %s\n", u.ID, u.Name)
-	}
+	fmt.Printf("Diffusion online_users: %d utilisateurs\n", len(users))
 
-	// ✅ Envoyer à tous les clients
 	clientsMutex.RLock()
 	defer clientsMutex.RUnlock()
 
@@ -182,9 +177,7 @@ func broadcastOnlineUsers() {
 		client.mu.Unlock()
 
 		if err != nil {
-			log.Printf("❌ Erreur envoi à client %d: %v\n", id, err)
-		} else {
-			fmt.Printf("✅ Message envoyé au client %d\n", id)
+			log.Printf("Erreur envoi à client %d: %v\n", id, err)
 		}
 	}
 }
@@ -194,9 +187,10 @@ func HandleMessages() {
 		msg := <-broadcast
 		now := time.Now()
 
+		// Sauvegarder en BDD
 		_, err := database.Exec(`
-			INSERT INTO messages (SenderID, ReceiverID, Content, CreatedAt)
-			VALUES (?, ?, ?, ?)`,
+            INSERT INTO messages (SenderID, ReceiverID, Content, CreatedAt)
+            VALUES (?, ?, ?, ?)`,
 			msg.SenderID, msg.ReceiverID, msg.Content, now,
 		)
 		if err != nil {
@@ -204,42 +198,66 @@ func HandleMessages() {
 			continue
 		}
 
-		fmt.Println("Message sauvegardé:", msg.SenderName, "→", msg.ReceiverID, ":", msg.Content)
+		fmt.Printf("Message sauvegardé: %s → ID%d : %s\n", msg.SenderName, msg.ReceiverID, msg.Content)
 
-		response := OutgoingMsg{
+		createdAt := now.Format(time.RFC3339)
+
+		// Envoyer au DESTINATAIRE avec is_mine = false
+		receiverMsg, _ := json.Marshal(OutgoingMsg{
 			Type:      "message",
 			Sender:    msg.SenderName,
 			SenderID:  msg.SenderID,
 			Content:   msg.Content,
-			CreatedAt: now.Format(time.RFC3339),
-		}
+			CreatedAt: createdAt,
+			IsMine:    false, // Le destinataire reçoit le message de quelqu'un d'autre
+		})
 
-		jsonResponse, _ := json.Marshal(response)
+		// Envoyer à l'EXPÉDITEUR avec is_mine = true
+		senderMsg, _ := json.Marshal(OutgoingMsg{
+			Type:      "message",
+			Sender:    msg.SenderName,
+			SenderID:  msg.SenderID,
+			Content:   msg.Content,
+			CreatedAt: createdAt,
+			IsMine:    true, // L'expéditeur voit son propre message
+		})
 
 		clientsMutex.RLock()
-		receiver, ok := clients[msg.ReceiverID]
+		receiver, receiverOnline := clients[msg.ReceiverID]
+		sender, senderOnline := clients[msg.SenderID]
 		clientsMutex.RUnlock()
 
-		if ok {
+		// Envoyer au destinataire s'il est connecté
+		if receiverOnline {
 			receiver.mu.Lock()
-			err := receiver.Conn.WriteMessage(websocket.TextMessage, jsonResponse)
+			err := receiver.Conn.WriteMessage(websocket.TextMessage, receiverMsg)
 			receiver.mu.Unlock()
-
 			if err != nil {
-				log.Println("Erreur envoi:", err)
+				log.Printf("Erreur envoi destinataire %d: %v\n", msg.ReceiverID, err)
+			}
+		}
+
+		// ✅ Renvoyer à l'expéditeur pour confirmer l'envoi
+		if senderOnline {
+			sender.mu.Lock()
+			err := sender.Conn.WriteMessage(websocket.TextMessage, senderMsg)
+			sender.mu.Unlock()
+			if err != nil {
+				log.Printf("Erreur envoi expéditeur %d: %v\n", msg.SenderID, err)
 			}
 		}
 	}
 }
 
 func sendHistory(conn *websocket.Conn, userID int, otherID int, offset int) {
+	// ✅ Récupérer 11 messages pour détecter s'il y en a plus
 	rows, err := database.Query(`
-		SELECT SenderID, Content, CreatedAt
-		FROM messages
-		WHERE (SenderID = ? AND ReceiverID = ?)
-		   OR (SenderID = ? AND ReceiverID = ?)
-		ORDER BY CreatedAt DESC
-		LIMIT 10 OFFSET ?`,
+        SELECT SenderID, Content, CreatedAt
+        FROM messages
+        WHERE (SenderID = ? AND ReceiverID = ?)
+           OR (SenderID = ? AND ReceiverID = ?)
+        ORDER BY CreatedAt DESC
+        LIMIT 11 OFFSET ?`,
 		userID, otherID, otherID, userID, offset,
 	)
 	if err != nil {
@@ -254,6 +272,7 @@ func sendHistory(conn *websocket.Conn, userID int, otherID int, offset int) {
 		var content, createdAt string
 		rows.Scan(&senderID, &content, &createdAt)
 
+		// ✅ Chercher le nom d'abord dans les clients connectés
 		senderName := ""
 		clientsMutex.RLock()
 		if client, ok := clients[senderID]; ok {
@@ -261,6 +280,7 @@ func sendHistory(conn *websocket.Conn, userID int, otherID int, offset int) {
 		}
 		clientsMutex.RUnlock()
 
+		// ✅ Sinon chercher en BDD
 		if senderName == "" {
 			database.QueryRow("SELECT UserName FROM users WHERE id=?", senderID).Scan(&senderName)
 		}
@@ -274,6 +294,13 @@ func sendHistory(conn *websocket.Conn, userID int, otherID int, offset int) {
 		})
 	}
 
+	// ✅ Détecter s'il y a plus de messages
+	hasMore := len(messages) == 11
+	if hasMore {
+		messages = messages[:10] // Garder seulement 10
+	}
+
+	// ✅ Inverser : les plus récents en bas
 	for i, j := 0, len(messages)-1; i < j; i, j = i+1, j-1 {
 		messages[i], messages[j] = messages[j], messages[i]
 	}
@@ -282,7 +309,7 @@ func sendHistory(conn *websocket.Conn, userID int, otherID int, offset int) {
 		"type":     "message_history",
 		"messages": messages,
 		"offset":   offset,
-		"has_more": len(messages) == 10,
+		"has_more": hasMore,
 	})
 
 	conn.WriteMessage(websocket.TextMessage, response)

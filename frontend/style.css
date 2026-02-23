@@ -23,7 +23,7 @@
    BASE
 ======================================== */
 body {
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   background: var(--bg-white);
   color: var(--text-dark);
   min-height: 100vh;
@@ -472,6 +472,7 @@ main-content chat
   width: 100%;
   height: 100%;
   min-height: 100px;
+  min-width: 300px;
   border: none;
   outline: none;
   resize: vertical;
@@ -504,6 +505,9 @@ main-content chat
   height: 430px;
   overflow-y: auto;
   padding-top: 20px;
+}
+.msg-time {
+  margin-right: 0.5rem;
 }
 .message-received p {
   margin-left: 0.5rem;
@@ -543,7 +547,7 @@ user-list
 
 /* ✅ Point VERT par défaut (utilisateur en ligne) */
 .user-item::after {
-  content: "";
+  content: '';
   width: 20px;
   height: 20px;
   background-color: #22c55e; /* Vert */

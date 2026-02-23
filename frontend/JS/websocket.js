@@ -1,68 +1,78 @@
 // Connexion WebSocket partagée globalement
-let ws = null;
-let reconnectInterval = null;
-let messageHandlers = []; // ✅ Liste des gestionnaires
+let ws = null
+let reconnectInterval = null
+let messageHandlers = []
+
+let currentUser = {id: null, name: null}
 
 export function initWebSocket() {
   if (ws && ws.readyState === WebSocket.OPEN) {
-    console.log("✅ WebSocket déjà connecté");
-    return ws;
+    console.log('WebSocket déjà connecté')
+    return ws
   }
 
-  ws = new WebSocket("ws://localhost:8080/ws");
+  ws = new WebSocket('ws://localhost:8080/ws')
 
   ws.onopen = function () {
-    console.log("✅ Connecté au WebSocket");
-    clearInterval(reconnectInterval);
-  };
+    console.log('Connecté au WebSocket')
+    clearInterval(reconnectInterval)
+  }
 
   ws.onclose = function () {
-    console.log("❌ Déconnecté du WebSocket");
+    console.log('Déconnecté du WebSocket')
     reconnectInterval = setInterval(() => {
-      console.log("🔄 Tentative de reconnexion...");
-      initWebSocket();
-    }, 3000);
-  };
+      console.log('Tentative de reconnexion...')
+      initWebSocket()
+    }, 3000)
+  }
 
   ws.onerror = function (error) {
-    console.error("⚠️ Erreur WebSocket:", error);
-  };
+    console.error('Erreur WebSocket:', error)
+  }
 
-  // ✅ Gestionnaire unique qui dispatch à tous les handlers
+  // Gestionnaire unique qui dispatch à tous les handlers
   ws.onmessage = function (event) {
-    const data = JSON.parse(event.data);
-    console.log("📩 Message WebSocket reçu:", data.type);
+    const data = JSON.parse(event.data)
+    console.log('Message WebSocket reçu:', data.type)
 
-    // ✅ Appeler tous les gestionnaires enregistrés
+    if (data.type === 'current_user') {
+      currentUser.id = data.id
+      currentUser.name = data.name
+      console.log('Utilisateur identifié:', currentUser.name)
+    }
+    // Appeler tous les gestionnaires enregistrés
     messageHandlers.forEach((handler) => {
       try {
-        handler(data);
+        handler(data)
       } catch (error) {
-        console.error("❌ Erreur dans un handler:", error);
+        console.error('Erreur dans un handler:', error)
       }
-    });
-  };
+    })
+  }
 
-  return ws;
+  return ws
+}
+export function getCurrentUser() {
+  return currentUser
 }
 
 export function getWebSocket() {
-  return ws;
+  return ws
 }
 
-// ✅ Ajouter un gestionnaire de messages
+//  Ajouter un gestionnaire de messages
 export function addMessageHandler(handler) {
   if (!messageHandlers.includes(handler)) {
-    messageHandlers.push(handler);
-    console.log("✅ Handler ajouté, total:", messageHandlers.length);
+    messageHandlers.push(handler)
+    console.log('Handler ajouté, total:', messageHandlers.length)
   }
 }
 
-// ✅ Retirer un gestionnaire
+//  Retirer un gestionnaire
 export function removeMessageHandler(handler) {
-  const index = messageHandlers.indexOf(handler);
+  const index = messageHandlers.indexOf(handler)
   if (index > -1) {
-    messageHandlers.splice(index, 1);
-    console.log("✅ Handler retiré, total:", messageHandlers.length);
+    messageHandlers.splice(index, 1)
+    console.log('Handler retiré, total:', messageHandlers.length)
   }
 }
