@@ -29,7 +29,7 @@ export function handleMessageHistory(data, isLoadingHistory, hasMoreMessages) {
     const previousHeight = receivedDiv.scrollHeight
 
     if (data.messages) {
-      data.messages.reverse().forEach((msg) => {
+      data.messages.forEach((msg) => {
         prependMessage(
           receivedDiv,
           msg.sender,
