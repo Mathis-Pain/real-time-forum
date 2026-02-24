@@ -10,10 +10,9 @@ type Repository struct {
 // Exporté : méthode GetOnlineUsers
 func (r *Repository) GetOnlineUsers() ([]string, error) {
 	rows, err := r.DB.Query(`
-        SELECT u.UserName
-        FROM users u
-        JOIN session s ON s.UserID = u.id
-        WHERE s.ExpiresAt > CURRENT_TIMESTAMP
+        SELECT userName
+        FROM users
+        WHERE userOnline = 1
     `)
 	if err != nil {
 		return nil, err

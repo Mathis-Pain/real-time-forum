@@ -30,6 +30,7 @@ func Server(port string, db *sql.DB) {
 	userRepo := &users.Repository{DB: db}
 	userHandler := &users.Handler{Repo: userRepo}
 	mux.Handle("/online-users", auth.AuthMiddleware(db)(http.HandlerFunc(userHandler.OnlineUsersHandler)))
+	mux.Handle("/messages/history", auth.AuthMiddleware(db)(http.HandlerFunc(messages.GetHistoryHandler)))
 
 	// Quand l'utilisateur arrive, affiche mainPage.
 	mux.HandleFunc("/", users.MainPage)

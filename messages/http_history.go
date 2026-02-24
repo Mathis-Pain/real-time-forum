@@ -1,0 +1,69 @@
+package messages
+
+import (
+	"encoding/json"
+	"net/http"
+	"time"
+)
+
+type HistoryMessage struct {
+	From      string    `json:"from"`
+	To        string    `json:"to"`
+	Content   string    `json:"content"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
+func GetHistoryHandler(w http.ResponseWriter, r *http.Request) {
+	// Auth via cookie
+	cookie, err := r.Cookie("session_token")
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	var userName string
+	err = db.QueryRow(`
+        SELECT u.UserName
+        FROM users u
+        JOIN session s ON s.UserID = u.id
+        WHERE s.Token = ? AND s.ExpiresAt > CURRENT_TIMESTAMP
+    `, cookie.Value).Scan(&userName)
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	other := r.URL.Query().Get("with")
+	if other == "" {
+		http.Error(w, "Missing 'with' param", http.StatusBadRequest)
+		return
+	}
+
+	limit := 10
+
+	rows, err := db.Query(`
+        SELECT SenderID, ReceiverID, Content, CreatedAt
+        FROM messages
+        WHERE (SenderID = ? AND ReceiverID = ?)
+           OR (SenderID = ? AND ReceiverID = ?)
+        ORDER BY CreatedAt DESC
+        LIMIT ?
+    `, userName, other, other, userName, limit)
+	if err != nil {
+		http.Error(w, "DB error", http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	var messages []HistoryMessage
+	for rows.Next() {
+		var m HistoryMessage
+		if err := rows.Scan(&m.From, &m.To, &m.Content, &m.CreatedAt); err != nil {
+			continue
+		}
+		messages = append(messages, m)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(messages)
+}

@@ -2,102 +2,145 @@ package messages
 
 import (
 	"database/sql"
+	"encoding/json"
 	"log"
+	"net/http"
 	"time"
 
 	"github.com/gorilla/websocket"
 )
 
-// Ici on vérifie si "mt" correspond bien à 2, ce qui indique que le message est en binaire ([]byte).
-// 1 indique un message Texte.
-// Point à vigiler, je ne suis pas sûr si on récupère automatiquement un MT de 1 ou 2, suivant le serveur ou le navigateur.
-func IsMessageTypeValid(mt int, conn *websocket.Conn) bool {
-	if mt != websocket.TextMessage {
-		err := conn.WriteMessage(websocket.TextMessage, []byte("Attention, vous n'avez pas mis que des caractères autorisés."))
-		if err != nil {
-			log.Printf("Error %s when sending message to client", err)
-			return false
-		}
-		return false
-	}
-	return true
+var upgrader = websocket.Upgrader{
+	CheckOrigin: func(r *http.Request) bool { return true },
 }
 
-// Vérification que le dernier message de l'utilisateur à plus de deux secondes.
-// Pour éviter les spam.
-func SafetyMessageRateSending2Seconds(db *sql.DB, senderID string, conn *websocket.Conn) bool {
-	var createdAt time.Time
-	err := db.QueryRow("SELECT CreatedAt FROM messages WHERE SenderID = ? ORDER BY CreatedAt DESC LIMIT 1", senderID).Scan(&createdAt)
-	if err == sql.ErrNoRows { // Si il n'y a pas d'historique d'échanges, ceci ignore la règle. Sinon il y a blocage.
-		return true
-	}
-	if err != nil { // Gestion des erreurs.
-		log.Printf("Error during verification of ruleSendingMessageTimeRateLimit2Seconds : %v", err)
-		_ = conn.WriteMessage(websocket.TextMessage, []byte("Attention, nous rencontrons une erreur du côté serveur."))
-		return false
-	}
-	if time.Since(createdAt) < 2*time.Second { //Affichage message d'erreur auprès de l'utilisateur.
-		_ = conn.WriteMessage(websocket.TextMessage, []byte("Attention, vous ne pouvez pas spammer l'envoi de messages."))
-		return false
-	}
-	return true
+var db *sql.DB
+
+func Init(database *sql.DB) {
+	db = database
 }
 
-// Sécurité pour les messages vides.
-func IsMessageNotEmpty(message []byte, conn *websocket.Conn) bool {
-	if len(message) == 0 {
-		_ = conn.WriteMessage(websocket.TextMessage, []byte("Attention, vous ne pouvez pas envoyer de messages vides."))
-		return false
-	}
-	return true
+type IncomingMessage struct {
+	Type    string `json:"type"`    // "private_message"
+	To      string `json:"to"`      // receiver username
+	Content string `json:"content"` // message text
 }
 
-// Sécurité pour les messages trop grands.
-func IsMessageTooTall(message []byte, conn *websocket.Conn) bool {
-	if len(message) > 800 { // 800 bytes ou caractères.
-		_ = conn.WriteMessage(websocket.TextMessage, []byte("Attention, votre message excède la taille limite."))
-		return false
-	}
-	return true
+type OutgoingMessage struct {
+	Type      string    `json:"type"`
+	From      string    `json:"from"`
+	To        string    `json:"to"`
+	Content   string    `json:"content"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
-// Ecriture du message envoyé dans la BDD
-func CreateMessageInBDD(db *sql.DB, message []byte, senderID string, receiverID string) error {
-	query := `INSERT INTO messages (SenderID, ReceiverID, Content) VALUES (?, ?, ?)`
-	_, err := db.Exec(query, senderID, receiverID, message)
-	return err
-}
-
-// Ecriture du message chez les utilisateurs.
-func WriteMessagesFromBddToUserScreen(db *sql.DB, conn *websocket.Conn, senderID string, receiverID string, lastChecked *time.Time) {
-	// 1. On cherche les messages qui sont destinés à l'utilisateur actuel (receiverID)
-	// et qui ont été envoyés par son contact (senderID) après la dernière vérification.
-	rows, err := db.Query("SELECT Content, CreatedAt FROM messages WHERE ReceiverID  = ? AND SenderID = ? AND CreatedAt > ? ORDER BY CreatedAt ASC", receiverID, senderID, *lastChecked)
+func WsHandler(w http.ResponseWriter, r *http.Request) {
+	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		log.Printf("Error querying messages: %v", err)
+		log.Printf("Error upgrading: %v\n", err)
 		return
 	}
-	defer rows.Close() //Fermeture de la connexion une fois la vérification finie.
 
-	for rows.Next() {
-		var content string
-		var createdAt time.Time
+	// Auth via cookie de session
+	cookie, err := r.Cookie("session_token")
+	if err != nil {
+		log.Printf("No session cookie found.\n")
+		conn.Close()
+		return
+	}
 
-		// 2. On scanne les données de la ligne en cours.
-		err := rows.Scan(&content, &createdAt)
+	var userName string
+	err = db.QueryRow(`
+        SELECT u.UserName
+        FROM users u
+        JOIN session s ON s.UserID = u.id
+        WHERE s.Token = ? AND s.ExpiresAt > CURRENT_TIMESTAMP
+    `, cookie.Value).Scan(&userName)
+	if err != nil {
+		log.Printf("Invalid or expired session: %v\n", err)
+		conn.Close()
+		return
+	}
+
+	client := &Client{
+		UserName: userName,
+		Conn:     conn,
+		Send:     make(chan []byte),
+	}
+
+	HubInstance.Register <- client
+
+	go writePump(client)
+	readPump(client)
+}
+
+func readPump(c *Client) {
+	defer func() {
+		HubInstance.Unregister <- c
+		c.Conn.Close()
+	}()
+
+	for {
+		_, msg, err := c.Conn.ReadMessage()
 		if err != nil {
-			log.Printf("Error scanning row: %v", err)
+			log.Printf("Read error: %v\n", err)
+			break
+		}
+
+		var incoming IncomingMessage
+		if err := json.Unmarshal(msg, &incoming); err != nil {
+			log.Printf("Invalid JSON: %v\n", err)
 			continue
 		}
 
-		// 3. On envoie le contenu trouvé au client via la websocket.
-		err = conn.WriteMessage(websocket.TextMessage, []byte(content))
-		if err != nil {
-			log.Printf("Error sending message to websocket: %v", err)
+		if incoming.Type == "private_message" {
+			handlePrivateMessage(c, incoming)
+		}
+	}
+}
+
+func writePump(c *Client) {
+	for msg := range c.Send {
+		if err := c.Conn.WriteMessage(websocket.TextMessage, msg); err != nil {
+			log.Printf("Write error: %v\n", err)
 			return
 		}
+	}
+}
 
-		// 4. On met à jour le curseur de temps avec la date du message qu'on vient d'envoyer.
-		*lastChecked = createdAt
+func handlePrivateMessage(sender *Client, in IncomingMessage) {
+	// 1. Écrire en BDD
+	query := `INSERT INTO messages (SenderID, ReceiverID, Content, CreatedAt) 
+              VALUES (?, ?, ?, CURRENT_TIMESTAMP)`
+	_, err := db.Exec(query, sender.UserName, in.To, in.Content)
+	if err != nil {
+		log.Printf("DB insert error: %v\n", err)
+		return
+	}
+
+	// 2. Construire le message de sortie
+	now := time.Now()
+	out := OutgoingMessage{
+		Type:      "private_message",
+		From:      sender.UserName,
+		To:        in.To,
+		Content:   in.Content,
+		CreatedAt: now,
+	}
+
+	data, err := json.Marshal(out)
+	if err != nil {
+		log.Printf("JSON marshal error: %v\n", err)
+		return
+	}
+
+	// 3. Envoyer au sender
+	if client, ok := HubInstance.Clients[sender.UserName]; ok {
+		client.Send <- data
+	}
+
+	// 4. Envoyer au receiver s'il est connecté
+	if client, ok := HubInstance.Clients[in.To]; ok {
+		client.Send <- data
 	}
 }

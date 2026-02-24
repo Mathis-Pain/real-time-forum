@@ -57,6 +57,7 @@ func main() {
 		config.InspectDbIntegrity(db)
 	}
 	messages.Init(db)
+	go messages.HubInstance.Run()
 	if err != nil {
 		log.Fatalf("Database error: %v", err)
 	}
