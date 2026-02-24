@@ -7,5 +7,6 @@ export function appendMessage(container, sender, content, createdAt, isMine) {
     <strong>${sender}</strong>
     <p>${content}</p>`
   container.appendChild(msgEl)
+  // Scroll automatique vers le bas pour voir le dernier message
   container.scrollTop = container.scrollHeight
 }

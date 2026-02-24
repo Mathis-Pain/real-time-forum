@@ -1,6 +1,6 @@
 import {appendMessage} from './appendMessage.js'
 
-// Gérer un message entrant en temps réel
+// handleIncomingMessage Gérer un message entrant en temps réel
 export function handleIncomingMessage(data, currentChatUserId) {
   const senderId = data.sender_id
 
