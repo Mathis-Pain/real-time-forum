@@ -49,6 +49,11 @@ function buildHeader() {
 	const logoutBtn = document.getElementById("logoutBtn");
 	logoutBtn.addEventListener("click", Logout);
   document.getElementById('chat-btn').addEventListener('click', handleChatClick)
+
+  document.getElementById('home-btn').addEventListener('click', async () => {
+  const posts = await loadPosts();
+  buildMain(posts);
+});
 }
 
 function buildSidebar() {
