@@ -30,7 +30,6 @@ var (
 
 	// Mutex pour protéger l'accès concurrent à la map clients
 	clientsMutex sync.RWMutex
-
 	// Channel utilisé pour transmettre les messages entrants
 	// vers la fonction HandleMessages
 	broadcast = make(chan IncomingMsg)
