@@ -2,6 +2,7 @@ import {ToggleRegisterFrom} from "./JS/connection.js";
 import {CreateAccount} from "./JS/create-account.js";
 import {Authentication} from "./JS/authentication.js";
 import {showApp} from "./JS/layout.js";
+import { initChat } from "./JS/chat.js";
 
 const authContainer = document.getElementById("auth-container");
 const appContainer = document.getElementById("app-container");
@@ -32,6 +33,7 @@ document.addEventListener("DOMContentLoaded", () => {
       showApp();
       document.getElementById("welcome-message").textContent =
         `Bienvenue, ${user.nickname} !`;
+      initChat("miaoutest");
     })
     .catch(() => {
       // Pas connecté : on reste sur le login, déjà initialisé

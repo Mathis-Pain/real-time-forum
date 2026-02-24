@@ -1,25 +1,26 @@
-import {main, showApp} from "./layout.js";
+import { main, showApp } from "./layout.js";
 
 let isUsed = false;
 
 function renderCreatePost() {
-  console.log("affichage formulaire post");
+	console.log("affichage formulaire post");
+	main.innerHTML = ``;
 
-  if (isUsed === true) {
-    return;
-  }
-  isUsed = true;
+	if (isUsed === true) {
+		return;
+	}
+	isUsed = true;
 
-  main.innerHTML = `
+	main.innerHTML = `
     <h2>Nouveau post</h2>
     <form id="post-form">
     <div class="title">
     <label for="title">Titre</label>
-      <textarea id="title" name="title" required></textarea>
+      <textarea id="title" name="title" required maxlength="30"></textarea>
       </div>
       <div class="message">
         <label for="message">Message</label>
-      <textarea id="message" name="message" placeholder="Text" required></textarea>
+      <textarea id="message" name="message" placeholder="Text" required maxlength="500"></textarea>
       </div>
       <div class="select-category">
        <label for="category">Catégorie</label>
@@ -38,31 +39,34 @@ function renderCreatePost() {
     </form>
   `;
 
-  document
-    .getElementById("post-form")
-    .addEventListener("submit", handleCreatePost);
+	document
+		.getElementById("post-form")
+		.addEventListener("submit", handleCreatePost);
 }
 
 function getSelectedCategories(form) {
-  const checked = form.querySelectorAll('input[name="category"]:checked');
-  return Array.from(checked).map((cb) => Number(cb.value));
+	const categorySelect = document.getElementById("category");
+
+	if (!categorySelect.value) return [];
+
+	return [Number(categorySelect.value)];
 }
 
 async function handleCreatePost(e) {
-  isUsed = false;
-  e.preventDefault();
-  console.log("handleCreatePost");
+	isUsed = false;
+	e.preventDefault();
+	console.log("handleCreatePost");
 
 	const form = e.target;
 	let categoriesId = getSelectedCategories(form);
-	console.log(categoriesId);
 
 	const data = {
 		title: form.title.value,
 		content: form.message.value,
-		authorid: 1,
 		category_ids: categoriesId,
 	};
+
+	console.log(data);
 
 	const res = await fetch("/post", {
 		method: "POST",
@@ -70,18 +74,14 @@ async function handleCreatePost(e) {
 		body: JSON.stringify(data),
 	});
 
-	console.log("data : ", data);
+	const result = await res.json();
 
-  console.log("fetch fait");
-
-  const result = await res.json();
-
-  if (!res.ok) {
-    document.getElementById("error").textContent = result.error;
-  } else {
-    alert("Post créé !");
-    showApp();
-  }
+	if (!res.ok) {
+		document.getElementById("error").textContent = result.error;
+	} else {
+		alert("Post créé !");
+		showApp();
+	}
 }
 
-export {renderCreatePost};
+export { renderCreatePost };

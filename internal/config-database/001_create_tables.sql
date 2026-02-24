@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS post  (
     AuthorID TEXT NOT NULL,
     CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
     UpdatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY(AuthorID) REFERENCES users(UserName)
+    FOREIGN KEY(AuthorID) REFERENCES users(id)
 );
 
 /* Se trouve dans un post */

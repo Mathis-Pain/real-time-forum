@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"real-time-forum/auth"
+	"real-time-forum/comments"
 	"real-time-forum/messages"
 	"real-time-forum/posts"
 	"real-time-forum/users"
@@ -21,7 +22,8 @@ func Server(port string, db *sql.DB) {
 
 	// routes protégées
 	mux.Handle("/auth/me", auth.AuthMiddleware(db)(http.HandlerFunc(auth.CurrentUserHandler(db))))
-	mux.Handle("/post", auth.AuthMiddleware(db)(http.HandlerFunc(posts.NewPostHandler(db))))
+	mux.Handle("/post", auth.AuthMiddleware(db)(http.HandlerFunc(posts.PostHandler(db))))
+	mux.Handle("/comment", auth.AuthMiddleware(db)(http.HandlerFunc(comments.NewCommentHandler(db))))
 	mux.Handle("/ws", auth.AuthMiddleware(db)(http.HandlerFunc(messages.HandleWebSocket(db))))
 	mux.Handle("/api/users", auth.AuthMiddleware(db)(http.HandlerFunc(users.GetAllUsersHandler(db))))
 	// Quand l'utilisateur arrive, affiche mainPage.
