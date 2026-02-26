@@ -47,7 +47,7 @@ export function handleMessageHistory(data, isLoadingHistory, hasMoreMessages) {
     const previousHeight = receivedDiv.scrollHeight
 
     if (data.messages) {
-      data.messages.forEach((msg) => {
+      data.messages.reverse().forEach((msg) => {
         // On ajoute les anciens messages EN HAUT
         prependMessage(
           receivedDiv,
@@ -79,7 +79,7 @@ function prependMessage(container, sender, content, createdAt, isMine) {
   // Contenu HTML du message
   msgEl.innerHTML = `
     <span class="msg-time">
-      ${new Date(createdAt).toLocaleTimeString()}
+      ${new Date(createdAt).toLocaleString()}
     </span>
     <strong>${sender}</strong>
     <p>${content}</p>
