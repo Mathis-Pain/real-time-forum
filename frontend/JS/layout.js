@@ -234,4 +234,4 @@ async function showApp() {
 	buildMain(posts);
 }
 
-export { header, main, sideBar, buildHeader, showApp };
+export { header, main, sideBar, buildHeader, showApp, loadPosts, buildMain };

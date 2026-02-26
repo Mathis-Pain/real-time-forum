@@ -1,5 +1,6 @@
 import { main } from "./layout.js";
 import { handleAddComment } from "./comments-service.js";
+import { loadPosts, buildMain } from "./layout.js";
 
 let currentPost = {};
 let comments = {};
@@ -37,7 +38,13 @@ async function postLayout(postId) {
 		<p id="error"></p>
 	</form>
     <div id="comments-card" class="card"></div>
+	<button id="returnHome">Retour à l'accueil</div>
     `;
+
+	document.getElementById('returnHome').addEventListener('click', async () => {
+  const posts = await loadPosts();
+  buildMain(posts);
+});
 
 	const commentsSection = document.getElementById("comments-card");
 
