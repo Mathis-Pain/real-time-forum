@@ -52,8 +52,6 @@ export function Authentication() {
 				// attrape les erreurs réseau
 				console.log("Erreur réseau :", error);
 			});
-
-		console.log("Login :", login, "Password :", password);
 	});
 }
 

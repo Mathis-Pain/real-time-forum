@@ -4,13 +4,7 @@ let isUsed = false;
 
 function renderCreatePost() {
 	console.log("affichage formulaire post");
-	main.innerHTML = ``;
-
-	if (isUsed === true) {
-		return;
-	}
-	isUsed = true;
-
+	
 	main.innerHTML = `
     <h2>Nouveau post</h2>
     <form id="post-form">
