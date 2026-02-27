@@ -1,15 +1,22 @@
 // Import des fonctions nécessaires au fonctionnement du chat
 
 import {getWebSocket, addMessageHandler} from './websocket.js'
-import {handleOnlineUsers} from './onlineUsers.js'
+import {handleOnlineUsers} from './handleOnlineUsers.js'
 import {handleIncomingMessage} from './handleIncomingMessage.js'
 import {openConversation} from './openConversation.js'
 import {handleMessageHistory} from './handleMessageHistory.js'
-
 let isLoadingHistory = false
 let hasMoreMessages = true
-let currentChatUserId = null
+export let currentChatUserId = null
 let chatInitialized = false
+
+export function getCurrentChatUserId() {
+  return currentChatUserId
+}
+
+export function setCurrentChatUserId(id) {
+  currentChatUserId = id
+}
 
 // handleChatClick Fonction principale appelée lors d’un clic sur "Chat"
 export function handleChatClick(e, userId = null, userName = null) {
@@ -104,7 +111,7 @@ function initializeChatInterface(main, ws) {
 
     // Réception d’un nouveau message
     if (data.type === 'message') {
-      handleIncomingMessage(data, currentChatUserId)
+      handleIncomingMessage(data, getCurrentChatUserId())
     }
 
     // Réception de l’historique paginé

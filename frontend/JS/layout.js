@@ -58,33 +58,27 @@ function buildSidebar() {
   sideBar.innerHTML = `<h2>Utilisateurs</h2>
   <div class="users-list"></div>`
 
-  // ✅ Initialiser WebSocket AVANT de charger les utilisateurs
+  // Initialiser WebSocket AVANT de charger les utilisateurs
   const ws = initWebSocket()
 
-  // ✅ Attendre que le WebSocket soit connecté
+  // Attendre que le WebSocket soit connecté
   ws.addEventListener('open', () => {
-    console.log('✅ WebSocket prêt, chargement utilisateurs...')
+    console.log(' WebSocket prêt, chargement utilisateurs...')
     loadAllUsers()
   })
 
-  // ✅ Si déjà connecté, charger immédiatement
+  // Si déjà connecté, charger immédiatement
   if (ws.readyState === WebSocket.OPEN) {
     loadAllUsers()
   }
 
-  // ✅ Enregistrer le gestionnaire de messages pour la sidebar
+  // Enregistrer le gestionnaire de messages pour la sidebar
   addMessageHandler(handleSidebarMessages)
 }
 
-// ✅ Gestionnaire de messages WebSocket pour la sidebar
+// Gestionnaire de messages WebSocket pour la sidebar
 function handleSidebarMessages(data) {
-  // ✅ Mise à jour des utilisateurs en ligne
-  if (data.type === 'online_users') {
-    console.log('📡 [SIDEBAR] Mise à jour utilisateurs:', data.users)
-    updateUsersList(data.users)
-  }
-
-  // ✅ Notification pour nouveau message
+  //  Notification pour nouveau message
   if (data.type === 'message') {
     const userItem = document.querySelector(
       `.user-item[data-user-id="${data.sender_id}"]`
@@ -92,42 +86,51 @@ function handleSidebarMessages(data) {
     if (userItem) {
       userItem.classList.add('has-notification')
     }
+    //  Mise à jour des utilisateurs en ligne
+    if (data.type === 'online_users') {
+      console.log('📡 [SIDEBAR] Mise à jour utilisateurs:', data.users)
+      updateUsersList(data.users)
+    }
   }
 }
 
-// ✅ Charger tous les utilisateurs depuis l'API
+// Charger tous les utilisateurs depuis l'API
 async function loadAllUsers() {
   const usersList = document.querySelector('.users-list')
 
   if (!usersList) {
-    console.error('❌ .users-list introuvable dans le DOM !')
+    console.error(' .users-list introuvable dans le DOM !')
     return
   }
 
-  console.log('🔄 Chargement des utilisateurs...')
+  console.log(' Chargement des utilisateurs...')
 
   try {
     const response = await fetch('/api/users')
     if (!response.ok) throw new Error('Erreur récupération utilisateurs')
 
     const allUsers = await response.json()
-    console.log('✅ Utilisateurs chargés:', allUsers)
+    console.log('Utilisateurs chargés:', allUsers)
 
     usersList.innerHTML = ''
 
     if (allUsers.length === 0) {
-      console.warn('⚠️ Aucun utilisateur trouvé dans la base')
+      console.warn(' Aucun utilisateur trouvé dans la base')
       usersList.innerHTML = '<p>Aucun utilisateur</p>'
       return
     }
 
     allUsers.forEach((user) => {
+      console.log(`Utilisateur: ${user.nickname} (online: ${user.online})`)
       const userEl = document.createElement('div')
       userEl.classList.add('user-item')
 
-      // ✅ Par défaut, tous sont hors ligne (classe .offline)
-      userEl.classList.add('offline')
-
+      // Par défaut, tous sont hors ligne (classe .offline)
+      if (!user.online) {
+        userEl.classList.add('offline')
+      } else {
+        userEl.classList.add('online')
+      }
       userEl.textContent = user.nickname
       userEl.dataset.userId = user.id
 
@@ -139,16 +142,14 @@ async function loadAllUsers() {
       usersList.appendChild(userEl)
     })
 
-    console.log(
-      `✅ ${allUsers.length} utilisateurs affichés (hors ligne par défaut)`
-    )
+    console.log(` ${allUsers.length} utilisateurs affichés`)
   } catch (error) {
     console.error('❌ Erreur chargement utilisateurs:', error)
   }
 }
 
-// ✅ Mettre à jour les statuts (en ligne/hors ligne)
-function updateUsersList(onlineUsers) {
+//  Mettre à jour les statuts (en ligne/hors ligne)
+export function updateUsersList(onlineUsers) {
   const usersList = document.querySelector('.users-list')
   if (!usersList) {
     console.error('❌ .users-list introuvable pour mise à jour')

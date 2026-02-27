@@ -1,3 +1,6 @@
+import {openConversation} from './openConversation.js'
+import {setCurrentChatUserId} from './chat.js'
+
 // handleOnlineUsers Gérer la liste des utilisateurs en ligne
 export function handleOnlineUsers(users, main, ws) {
   // On récupère le conteneur de la liste des utilisateurs
@@ -12,6 +15,7 @@ export function handleOnlineUsers(users, main, ws) {
   // On vide la liste actuelle (évite les doublons)
   usersList.innerHTML = ''
 
+  users = users.sort((a, b) => a.name.localeCompare(b.name))
   // Pour chaque utilisateur reçu depuis le serveur
   users.forEach((user) => {
     // Création d’un élément HTML pour l’utilisateur
@@ -19,7 +23,7 @@ export function handleOnlineUsers(users, main, ws) {
 
     // Ajout d’une classe CSS
     userEl.classList.add('user-item')
-
+    userEl.classList.add('online')
     // Affichage du nom dans l’élément
     userEl.textContent = user.name
 
@@ -28,14 +32,11 @@ export function handleOnlineUsers(users, main, ws) {
 
     // Événement : clic sur un utilisateur
     userEl.addEventListener('click', () => {
+      setCurrentChatUserId(user.id) // Modifie vraiment la variable
+      openConversation(main, ws, user.id, user.name)
+
       // Supprime l’indicateur de notification si présent
       userEl.classList.remove('has-notification')
-
-      // Met à jour l’utilisateur actuellement sélectionné
-      currentChatUserId = user.id
-
-      // Ouvre la conversation avec cet utilisateur
-      openConversation(main, ws, user.id, user.name)
     })
 
     // Ajoute l’utilisateur dans la liste affichée
