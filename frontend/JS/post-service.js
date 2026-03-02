@@ -20,7 +20,7 @@ function renderCreatePost() {
 
       <div class="select-category">
         <label for="category">Catégorie</label>
-        <select id="category" name="category" required>
+        <select id="post-category" name="category" required>
           <option value="" disabled selected>Choisir une catégorie</option>
         </select>
       </div>
@@ -40,26 +40,44 @@ function renderCreatePost() {
         .addEventListener("submit", handleCreatePost);
 }
 
-async function loadCategories() {
+export async function loadCategories() {
     try {
         const res = await fetch("/categories");
         const categories = await res.json();
 
-        const select = document.getElementById("category");
+        const headerSelect = document.getElementById("category");
+        const formSelect = document.getElementById("post-category");
 
-        categories.forEach(cat => {
-            const option = document.createElement("option");
-            option.value = cat.id;
-            option.textContent = cat.name;
-            select.appendChild(option);
-        });
+        // Remplir le select du header
+        if (headerSelect) {
+            headerSelect.innerHTML = `<option value="all">Tous les posts</option>`;
+            categories.forEach(cat => {
+                const option = document.createElement("option");
+                option.value = cat.id;
+                option.textContent = cat.name;
+                headerSelect.appendChild(option);
+            });
+        }
+
+        // Remplir le select du formulaire
+        if (formSelect) {
+            formSelect.innerHTML = `<option value="" disabled selected>Choisir une catégorie</option>`;
+            categories.forEach(cat => {
+                const option = document.createElement("option");
+                option.value = cat.id;
+                option.textContent = cat.name;
+                formSelect.appendChild(option);
+            });
+        }
+
     } catch (err) {
         console.error("Erreur chargement catégories :", err);
     }
 }
 
+
 function getSelectedCategories(form) {
-    const categorySelect = document.getElementById("category");
+    const categorySelect = document.getElementById("post-category");
 
     if (!categorySelect.value) return [];
 

@@ -1,4 +1,4 @@
-import {renderCreatePost} from './post-service.js'
+import {renderCreatePost, loadCategories} from './post-service.js'
 import {Logout} from './authentication.js'
 import {handleChatClick} from './chat/chat.js'
 import {initWebSocket, addMessageHandler} from './chat/websocket.js'
@@ -15,7 +15,9 @@ function buildHeader() {
   <nav class="header-nav">
     <button id="new-post-btn">Nouveau post</button>
     <button id="home-btn">Home</button>
-    <button id="categories-btn">Catégories</button>
+    <select id="category" name="category" required>
+          <option value="all">Tous les posts</option>
+        </select>
   </nav>
   <div class="forum-section">
     <div class="profile-section">
@@ -25,6 +27,26 @@ function buildHeader() {
       <button id="logoutBtn">Déconnexion</button>
     </div>
 `
+loadCategories()
+
+const categorySelect = document.getElementById("category");
+
+categorySelect.addEventListener("change", async () => {
+  const category = categorySelect.value;
+  try {
+      const res = await fetch(`/post?id=0&category=${category}`)
+      if (!res.ok) {
+        console.error('Erreur fetch posts:', res.status, await res.text())
+        return
+      }
+      const data = await res.json()
+      console.log("Réponse brute :", data);
+      console.log('Posts reçus:', data.allposts)
+      buildMain(data.allposts)
+    } catch (err) {
+      console.error('Erreur fetch posts:', err)
+    }
+  })
 
   document.getElementById('logoutBtn').addEventListener('click', async () => {
     try {
@@ -183,6 +205,7 @@ function updateUsersList(onlineUsers) {
 }
 
 async function buildMain(posts = []) {
+  if (!Array.isArray(posts)) posts = [];
   const res = await fetch("/categories")
   const categories = await res.json();
   console.log("categories:", categories);

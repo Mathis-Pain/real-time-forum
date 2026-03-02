@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"real-time-forum/comments"
 	"real-time-forum/users"
+	"strconv"
 )
 
 // --- Fonctions Sauvegarde de Data
@@ -140,6 +141,56 @@ func GetAllPosts(db *sql.DB) ([]Post, error) {
 			return nil, err
 		}
 
+		for catRows.Next() {
+			var cid int
+			catRows.Scan(&cid)
+			p.CategoryIDs = append(p.CategoryIDs, cid)
+		}
+		catRows.Close()
+
+		posts = append(posts, p)
+	}
+
+	return posts, nil
+}
+
+func GetPostsByCategory(db *sql.DB, category string) ([]Post, error) {
+	query := `
+        SELECT DISTINCT p.id, p.title, p.content, p.authorid
+        FROM post p
+        LEFT JOIN post_categories pc ON p.id = pc.postid
+    `
+
+	var args []interface{}
+
+	if category != "" && category != "all" {
+		catID, err := strconv.Atoi(category)
+		if err != nil {
+			return nil, err
+		}
+		query += " WHERE pc.categoryid = ?"
+		args = append(args, catID)
+	}
+
+	rows, err := db.Query(query, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var posts []Post
+
+	for rows.Next() {
+		var p Post
+		if err := rows.Scan(&p.ID, &p.Title, &p.Content, &p.AuthorID); err != nil {
+			return nil, err
+		}
+
+		// Charger les catégories
+		catRows, err := db.Query("SELECT categoryid FROM post_categories WHERE postid = ?", p.ID)
+		if err != nil {
+			return nil, err
+		}
 		for catRows.Next() {
 			var cid int
 			catRows.Scan(&cid)

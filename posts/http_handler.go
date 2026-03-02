@@ -62,6 +62,7 @@ func PostHandler(db *sql.DB) http.HandlerFunc {
 
 			//reception id post
 			idStr := r.URL.Query().Get("id")
+			category := r.URL.Query().Get("category")
 
 			postId, err := strconv.Atoi(idStr)
 			if err != nil {
@@ -72,13 +73,14 @@ func PostHandler(db *sql.DB) http.HandlerFunc {
 			}
 
 			if postId == 0 {
-				allPosts, err := GetAllPosts(db)
+				allPosts, err := GetPostsByCategory(db, category)
 				if err != nil {
-					log.Printf("Erreur recuperation allPosts: %v", err)
+					log.Printf("Erreur recuperation Posts: %v", err)
 					shared.RespondError(w, http.StatusInternalServerError, err)
+					return
 				}
 				response = PostResponse{
-					ResponseNotif: "Sendind all posts",
+					ResponseNotif: "Sendind posts",
 					AllPosts:      allPosts,
 				}
 			} else {
