@@ -2,7 +2,7 @@ import {Logout} from './authentication.js'
 import {handleChatClick} from './chat/chat.js'
 import {initWebSocket, addMessageHandler} from './chat/websocket.js'
 import {postLayout} from './display-post-comments.js'
-import {renderCreatePost} from '../post-service.js'
+import {renderCreatePost} from './post-service.js'
 
 const header = document.getElementById('header')
 const main = document.getElementById('main-content')
@@ -144,7 +144,6 @@ async function loadAllUsers() {
       console.log(`Utilisateur: ${user.nickname} (online: ${user.online})`)
       const userEl = document.createElement('div')
       userEl.classList.add('user-item')
-      userEl.classList.add('offline')
       userEl.textContent = user.nickname
       userEl.dataset.userId = user.id
 

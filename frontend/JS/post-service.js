@@ -1,4 +1,4 @@
-import {main, showApp} from './JS/layout.js'
+import {main, showApp} from './layout.js'
 
 let isUsed = false
 

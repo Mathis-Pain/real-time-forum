@@ -14,7 +14,6 @@ function showLogin() {
 // Garantit que le JS s'exécute une fois que la page est prête
 document.addEventListener('DOMContentLoaded', () => {
   // Préparation des formulaires
-  showLogin()
   ToggleRegisterFrom()
   CreateAccount()
   Authentication()
