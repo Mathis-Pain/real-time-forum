@@ -182,7 +182,14 @@ function updateUsersList(onlineUsers) {
   })
 }
 
-function buildMain(posts = []) {
+async function buildMain(posts = []) {
+  const res = await fetch("/categories")
+  const categories = await res.json();
+  console.log("categories:", categories);
+
+  const catMap = {};
+  categories.forEach(c => catMap[c.id] = c.name);
+
   main.innerHTML = `
     <h2>Posts</h2>
     <div class="posts-header">
@@ -199,9 +206,13 @@ function buildMain(posts = []) {
     const div = document.createElement('div')
     div.classList.add('posts-row')
 
+    const categoryNames = (post.category_ids || [])
+    .map(id => catMap[id])
+    .join(', ');
+
     div.innerHTML = `
       <span>${post.title}</span>
-      <span>${(post.category_ids || []).join(', ')}</span>
+      <span>${categoryNames}</span>
       <span>${post.content}</span>
     `
     div.addEventListener('click', () => postLayout(post.id))

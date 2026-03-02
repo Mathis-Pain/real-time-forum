@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"real-time-forum/auth"
+	"real-time-forum/categories"
 	"real-time-forum/comments"
 	"real-time-forum/messages"
 	"real-time-forum/posts"
@@ -26,6 +27,7 @@ func Server(port string, db *sql.DB) {
 	mux.Handle("/comment", auth.AuthMiddleware(db)(http.HandlerFunc(comments.NewCommentHandler(db))))
 	mux.Handle("/ws", auth.AuthMiddleware(db)(http.HandlerFunc(messages.HandleWebSocket(db))))
 	mux.Handle("/api/users", auth.AuthMiddleware(db)(http.HandlerFunc(users.GetAllUsersHandler(db))))
+	mux.Handle("/categories", auth.AuthMiddleware(db)(http.HandlerFunc(categories.CategoriesHandler(db))))
 	// Quand l'utilisateur arrive, affiche mainPage.
 	mux.HandleFunc("/", users.MainPage)
 	// servir les fichiers static

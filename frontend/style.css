@@ -747,9 +747,9 @@ footer {
 
 /* ====== En-tête ====== */
 .posts-header,
-.posts-row a {
+.posts-row {
   display: grid;
-  grid-template-columns: 1fr 2fr 3fr; /* mêmes proportions partout */
+  grid-template-columns: 1fr 2fr 3fr;
   column-gap: 15px;
   max-width: 900px;
   margin: 0 auto;
@@ -763,17 +763,15 @@ footer {
   color: #222;
 }
 
-/* ====== Bannière de sujet ====== */
+/* ====== Ligne de post ====== */
 .posts-row {
   background-color: rgba(255,255,255,0.9);
   padding: 15px 20px;
   margin: 10px auto;
-  max-width: 900px;
   border-radius: 10px;
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
-  transition:
-    transform 0.2s,
-    box-shadow 0.2s;
+  transition: transform 0.2s, box-shadow 0.2s;
+  cursor: pointer;
 }
 
 .posts-row:hover {
@@ -781,12 +779,7 @@ footer {
   box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
 }
 
-.posts-row a {
-  text-decoration: none;
-  color: #333;
-}
-
-/* ====== Contenu ====== */
+/* ====== Texte ====== */
 .posts-row span:last-child {
   color: #555;
   overflow: hidden;
@@ -795,19 +788,9 @@ footer {
 }
 
 /* ====== Catégories ====== */
-.posts-categories {
-  display: flex;
-  flex-direction: column; /* les catégories les unes sous les autres */
-  gap: 4px;
-}
-
-.category-item {
-  display: inline-block;
-  background-color: rgba(0, 0, 0, 0.05);
-  padding: 3px 8px;
-  border-radius: 5px;
-  font-size: 0.9rem;
+.posts-row span:nth-child(2) {
   color: #444;
+  font-weight: 500;
 }
 
 /* ====== Message "aucun sujet" ====== */
@@ -817,6 +800,7 @@ footer {
   font-style: italic;
   color: #666;
 }
+
 
 /**********************************************************************/
 /*MARK: AFFICHAGE D'UN POST ET SES COMMENTAIRES
