@@ -1,8 +1,8 @@
 // Import de la fonction qui ajoute un message en bas
-import {appendMessage} from './appendMessage.js'
+import {appendMessage} from './incomingMessage.js'
 
 // handleMessageHistory Gérer l’historique des messages (avec pagination)
-export function handleMessageHistory(data, isLoadingHistory, hasMoreMessages) {
+export function messageHistory(data, isLoadingHistory, hasMoreMessages) {
   // Récupération du conteneur des messages
   const receivedDiv = document.querySelector('.message-received')
 

@@ -15,7 +15,10 @@ let currentUser = {id: null, name: null}
 // initWebSocket Initialiser la connexion WebSocket
 export function initWebSocket() {
   // Si déjà connecté, on retourne l’instance existante
-  if (ws && ws.readyState === WebSocket.OPEN) {
+  if (
+    ws &&
+    (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)
+  ) {
     console.log('WebSocket déjà connecté')
     return ws
   }

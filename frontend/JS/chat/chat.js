@@ -1,26 +1,17 @@
 // Import des fonctions nécessaires au fonctionnement du chat
 
 import {getWebSocket, addMessageHandler} from './websocket.js'
-import {handleOnlineUsers} from './handleOnlineUsers.js'
-import {handleIncomingMessage} from './handleIncomingMessage.js'
+import {handleOnlineUsers} from './onlineUsers.js'
+import {incomingMessage} from './incomingMessage.js'
 import {openConversation} from './openConversation.js'
-import {handleMessageHistory} from './handleMessageHistory.js'
+import {messageHistory} from './messageHistory.js'
 let isLoadingHistory = false
 let hasMoreMessages = true
 export let currentChatUserId = null
 let chatInitialized = false
 
-export function getCurrentChatUserId() {
-  return currentChatUserId
-}
-
-export function setCurrentChatUserId(id) {
-  currentChatUserId = id
-}
-
 // handleChatClick Fonction principale appelée lors d’un clic sur "Chat"
-export function handleChatClick(e, userId = null, userName = null) {
-  if (e) e.preventDefault()
+export function handleChatClick(userId = null, userName = null) {
   console.log('Clic chat', {userId, userName, chatInitialized})
 
   // Récupération du conteneur principal
@@ -34,7 +25,7 @@ export function handleChatClick(e, userId = null, userName = null) {
     console.error('WebSocket non connecté')
 
     // Réessaie après 100ms si pas encore prêt
-    setTimeout(() => handleChatClick(null, userId, userName), 100)
+    setTimeout(() => handleChatClick(userId, userName), 100)
     return
   }
 
@@ -111,12 +102,12 @@ function initializeChatInterface(main, ws) {
 
     // Réception d’un nouveau message
     if (data.type === 'message') {
-      handleIncomingMessage(data, getCurrentChatUserId())
+      incomingMessage(data, currentChatUserId)
     }
 
     // Réception de l’historique paginé
     if (data.type === 'message_history') {
-      handleMessageHistory(data, isLoadingHistory, hasMoreMessages)
+      messageHistory(data, isLoadingHistory, hasMoreMessages)
     }
   })
 

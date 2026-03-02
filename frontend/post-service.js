@@ -1,11 +1,11 @@
-import { main, showApp } from "./layout.js";
+import {main, showApp} from './JS/layout.js'
 
-let isUsed = false;
+let isUsed = false
 
-function renderCreatePost() {
-	console.log("affichage formulaire post");
-	
-	main.innerHTML = `
+export function renderCreatePost() {
+  console.log('affichage formulaire post')
+
+  main.innerHTML = `
     <h2>Nouveau post</h2>
     <form id="post-form">
     <div class="title">
@@ -31,51 +31,49 @@ function renderCreatePost() {
         </div>
       <p id="error"></p>
     </form>
-  `;
+  `
 
-	document
-		.getElementById("post-form")
-		.addEventListener("submit", handleCreatePost);
+  document
+    .getElementById('post-form')
+    .addEventListener('submit', handleCreatePost)
 }
 
 function getSelectedCategories(form) {
-	const categorySelect = document.getElementById("category");
+  const categorySelect = document.getElementById('category')
 
-	if (!categorySelect.value) return [];
+  if (!categorySelect.value) return []
 
-	return [Number(categorySelect.value)];
+  return [Number(categorySelect.value)]
 }
 
 async function handleCreatePost(e) {
-	isUsed = false;
-	e.preventDefault();
-	console.log("handleCreatePost");
+  isUsed = false
+  e.preventDefault()
+  console.log('handleCreatePost')
 
-	const form = e.target;
-	let categoriesId = getSelectedCategories(form);
+  const form = e.target
+  let categoriesId = getSelectedCategories(form)
 
-	const data = {
-		title: form.title.value,
-		content: form.message.value,
-		category_ids: categoriesId,
-	};
+  const data = {
+    title: form.title.value,
+    content: form.message.value,
+    category_ids: categoriesId
+  }
 
-	console.log(data);
+  console.log(data)
 
-	const res = await fetch("/post", {
-		method: "POST",
-		headers: { "Content-Type": "application/json" },
-		body: JSON.stringify(data),
-	});
+  const res = await fetch('/post', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(data)
+  })
 
-	const result = await res.json();
+  const result = await res.json()
 
-	if (!res.ok) {
-		document.getElementById("error").textContent = result.error;
-	} else {
-		alert("Post créé !");
-		showApp();
-	}
+  if (!res.ok) {
+    document.getElementById('error').textContent = result.error
+  } else {
+    alert('Post créé !')
+    showApp()
+  }
 }
-
-export { renderCreatePost };

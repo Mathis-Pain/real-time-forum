@@ -1,8 +1,8 @@
-import {renderCreatePost} from './post-service.js'
 import {Logout} from './authentication.js'
 import {handleChatClick} from './chat/chat.js'
 import {initWebSocket, addMessageHandler} from './chat/websocket.js'
 import {postLayout} from './display-post-comments.js'
+import {renderCreatePost} from '../post-service.js'
 
 const header = document.getElementById('header')
 const main = document.getElementById('main-content')
@@ -21,10 +21,9 @@ function buildHeader() {
     <div class="profile-section">
       <p id="welcome-message"></p>
       <img src="./frontend/img/profil.gif" alt="image profil" class="profil-icon">
-      </div>
-      <button id="logoutBtn">Déconnexion</button>
     </div>
-`
+    <button id="logoutBtn">Déconnexion</button>
+  </div>`
 
   document.getElementById('logoutBtn').addEventListener('click', async () => {
     try {
@@ -45,6 +44,7 @@ function buildHeader() {
 
   const postBtn = document.getElementById('new-post-btn')
   postBtn.addEventListener('click', renderCreatePost)
+
   const logoutBtn = document.getElementById('logoutBtn')
   logoutBtn.addEventListener('click', Logout)
 
@@ -54,31 +54,25 @@ function buildHeader() {
   })
 }
 
-function buildSidebar() {
+export function buildSidebar() {
   sideBar.innerHTML = `<h2>Utilisateurs</h2>
   <div class="users-list"></div>`
 
-  // Initialiser WebSocket AVANT de charger les utilisateurs
   const ws = initWebSocket()
 
-  // Attendre que le WebSocket soit connecté
   ws.addEventListener('open', () => {
-    console.log(' WebSocket prêt, chargement utilisateurs...')
+    console.log('WebSocket prêt, chargement utilisateurs...')
     loadAllUsers()
   })
 
-  // Si déjà connecté, charger immédiatement
   if (ws.readyState === WebSocket.OPEN) {
     loadAllUsers()
   }
 
-  // Enregistrer le gestionnaire de messages pour la sidebar
   addMessageHandler(handleSidebarMessages)
 }
 
-// Gestionnaire de messages WebSocket pour la sidebar
 function handleSidebarMessages(data) {
-  //  Notification pour nouveau message
   if (data.type === 'message') {
     const userItem = document.querySelector(
       `.user-item[data-user-id="${data.sender_id}"]`
@@ -86,24 +80,50 @@ function handleSidebarMessages(data) {
     if (userItem) {
       userItem.classList.add('has-notification')
     }
-    //  Mise à jour des utilisateurs en ligne
-    if (data.type === 'online_users') {
-      console.log('📡 [SIDEBAR] Mise à jour utilisateurs:', data.users)
-      updateUsersList(data.users)
-    }
+  }
+
+  if (data.type === 'online_users') {
+    console.log('Mise à jour utilisateurs en ligne:', data.users)
+    updateSidebarOnlineStatus(data.users)
   }
 }
 
-// Charger tous les utilisateurs depuis l'API
+function updateSidebarOnlineStatus(onlineUsers) {
+  const onlineIds = new Set(onlineUsers.map((u) => u.id))
+
+  const userItems = document.querySelectorAll('#sidebar .user-item')
+
+  if (userItems.length === 0) {
+    console.warn('Aucun user-item dans la sidebar')
+    return
+  }
+
+  userItems.forEach((el) => {
+    const userId = parseInt(el.dataset.userId)
+
+    if (onlineIds.has(userId)) {
+      el.classList.remove('offline')
+      el.classList.add('online')
+    } else {
+      el.classList.remove('online')
+      el.classList.add('offline')
+    }
+  })
+
+  console.log(
+    `${onlineIds.size} utilisateurs en ligne sur ${userItems.length} total`
+  )
+}
+
 async function loadAllUsers() {
   const usersList = document.querySelector('.users-list')
 
   if (!usersList) {
-    console.error(' .users-list introuvable dans le DOM !')
+    console.error('.users-list introuvable dans le DOM !')
     return
   }
 
-  console.log(' Chargement des utilisateurs...')
+  console.log('Chargement des utilisateurs...')
 
   try {
     const response = await fetch('/api/users')
@@ -115,7 +135,7 @@ async function loadAllUsers() {
     usersList.innerHTML = ''
 
     if (allUsers.length === 0) {
-      console.warn(' Aucun utilisateur trouvé dans la base')
+      console.warn('Aucun utilisateur trouvé dans la base')
       usersList.innerHTML = '<p>Aucun utilisateur</p>'
       return
     }
@@ -124,63 +144,22 @@ async function loadAllUsers() {
       console.log(`Utilisateur: ${user.nickname} (online: ${user.online})`)
       const userEl = document.createElement('div')
       userEl.classList.add('user-item')
-
-      // Par défaut, tous sont hors ligne (classe .offline)
-      if (!user.online) {
-        userEl.classList.add('offline')
-      } else {
-        userEl.classList.add('online')
-      }
+      userEl.classList.add('offline')
       userEl.textContent = user.nickname
       userEl.dataset.userId = user.id
 
       userEl.addEventListener('click', () => {
         userEl.classList.remove('has-notification')
-        handleChatClick(null, user.id, user.nickname)
+        handleChatClick(user.id, user.nickname)
       })
 
       usersList.appendChild(userEl)
     })
 
-    console.log(` ${allUsers.length} utilisateurs affichés`)
+    console.log(`${allUsers.length} utilisateurs affichés`)
   } catch (error) {
-    console.error('❌ Erreur chargement utilisateurs:', error)
+    console.error('Erreur chargement utilisateurs:', error)
   }
-}
-
-//  Mettre à jour les statuts (en ligne/hors ligne)
-export function updateUsersList(onlineUsers) {
-  const usersList = document.querySelector('.users-list')
-  if (!usersList) {
-    console.error('❌ .users-list introuvable pour mise à jour')
-    return
-  }
-
-  // ✅ Créer un Set des IDs en ligne
-  const onlineUserIds = new Set(onlineUsers.map((u) => u.id))
-  console.log('🟢 Utilisateurs en ligne:', Array.from(onlineUserIds))
-
-  // ✅ Parcourir tous les .user-item et mettre à jour leur statut
-  const userItems = usersList.querySelectorAll('.user-item')
-
-  if (userItems.length === 0) {
-    console.warn('⚠️ Aucun .user-item trouvé pour mise à jour')
-    return
-  }
-
-  userItems.forEach((userEl) => {
-    const userId = parseInt(userEl.dataset.userId)
-
-    if (onlineUserIds.has(userId)) {
-      // 🟢 En ligne → retirer .offline
-      userEl.classList.remove('offline')
-      console.log(`🟢 ${userEl.textContent} est EN LIGNE`)
-    } else {
-      // 🔴 Hors ligne → ajouter .offline
-      userEl.classList.add('offline')
-      console.log(`🔴 ${userEl.textContent} est HORS LIGNE`)
-    }
-  })
 }
 
 function buildMain(posts = []) {

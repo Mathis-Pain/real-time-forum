@@ -546,7 +546,7 @@ user-list
 }
 
 /* ✅ Point VERT par défaut (utilisateur en ligne) */
-.user-item::after {
+.user-item.online::after {
   content: '';
   width: 20px;
   height: 20px;
@@ -557,6 +557,11 @@ user-list
 
 /* ✅ Point ROUGE pour utilisateur hors ligne */
 .user-item.offline::after {
+  content: '';
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  flex-shrink: 0;
   background-color: #ef4444; /* Rouge */
 }
 
@@ -765,7 +770,7 @@ footer {
 
 /* ====== Bannière de sujet ====== */
 .posts-row {
-  background-color: rgba(255,255,255,0.9);
+  background-color: rgba(255, 255, 255, 0.9);
   padding: 15px 20px;
   margin: 10px auto;
   max-width: 900px;
@@ -824,25 +829,26 @@ footer {
 .card {
   padding: 15px 20px;
   margin: 10px auto;
-      width: 86%;
-              max-width: 920px;
+  width: 86%;
+  max-width: 920px;
 
   border-radius: 10px;
-  background-color: rgba(255,255,255,0.9);
-  box-shadow: 0 3px 8px rgba(0,0,0,0.1);
-  transition: transform 0.2s, box-shadow 0.2s;
- 
+  background-color: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
 }
 
-.card span:last-child{
+.card span:last-child {
   color: #555;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 #post-card {
-    max-height: 150px;
-    word-wrap: break-word;
+  max-height: 150px;
+  word-wrap: break-word;
   overflow-wrap: break-word;
 }
 
@@ -854,47 +860,45 @@ footer {
   border-radius: 30px;
   padding: 2rem;
   width: 86%;
-          max-width: 920px;
+  max-width: 920px;
 
   height: 150px;
 }
 
 #comment-form textarea {
-border-radius: 18px;
-    background-color: var(--text-white);
-    width: 100%;
-    border: none;
-    padding: 10px;
-    height: 90px;
-    max-height: 90px;
+  border-radius: 18px;
+  background-color: var(--text-white);
+  width: 100%;
+  border: none;
+  padding: 10px;
+  height: 90px;
+  max-height: 90px;
 }
 
 #comment-btn {
-    font-weight: 400;
-    border: none;
-    margin-left: 10px;
-    background: var(--bg-grey-2);
-    color: white;
-    border-radius: 5px;
-    padding: 10px;
-    cursor: pointer;
-    height: fit-content;
-    width: fit-content;
+  font-weight: 400;
+  border: none;
+  margin-left: 10px;
+  background: var(--bg-grey-2);
+  color: white;
+  border-radius: 5px;
+  padding: 10px;
+  cursor: pointer;
+  height: fit-content;
+  width: fit-content;
 }
 
 #comment-btn:hover {
   background: var(--bg-grey-3);
-
 }
 
 #comments-card {
   display: flex;
   flex-direction: column;
-      width: 86%;
-        max-width: 920px;
- 
-  background-color: rgba(255,255,255,0.9);
+  width: 86%;
+  max-width: 920px;
 
+  background-color: rgba(255, 255, 255, 0.9);
 }
 .comment-row {
   max-height: 150px;
@@ -903,6 +907,6 @@ border-radius: 18px;
   margin-top: 10px;
   color: var(--text-white);
   background-color: var(--bg-grey-3);
-   word-wrap: break-word;
+  word-wrap: break-word;
   overflow-wrap: break-word;
 }

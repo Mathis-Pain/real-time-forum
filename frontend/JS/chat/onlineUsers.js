@@ -1,10 +1,9 @@
 import {openConversation} from './openConversation.js'
-import {setCurrentChatUserId} from './chat.js'
 
 // handleOnlineUsers Gérer la liste des utilisateurs en ligne
 export function handleOnlineUsers(users, main, ws) {
   // On récupère le conteneur de la liste des utilisateurs
-  const usersList = document.querySelector('.users-list')
+  const usersList = main.querySelector('.users-list')
 
   // Sécurité : si l'élément n'existe pas, on arrête
   if (!usersList) {
@@ -32,7 +31,6 @@ export function handleOnlineUsers(users, main, ws) {
 
     // Événement : clic sur un utilisateur
     userEl.addEventListener('click', () => {
-      setCurrentChatUserId(user.id) // Modifie vraiment la variable
       openConversation(main, ws, user.id, user.name)
 
       // Supprime l’indicateur de notification si présent
