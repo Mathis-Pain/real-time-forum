@@ -97,13 +97,15 @@ async function loadAllUsers() {
     const response = await fetch('/api/users')
     if (!response.ok) throw new Error('Erreur récupération utilisateurs')
 
-    const allUsers = await response.json()
+    let allUsers = await response.json()
     usersList.innerHTML = ''
 
     if (allUsers.length === 0) {
       usersList.innerHTML = '<p>Aucun utilisateur</p>'
       return
     }
+
+    allUsers = allUsers.sort((a, b) => a.nickname.localeCompare(b.nickname))
     allUsers.forEach((user) => {
       const userEl = document.createElement('div')
       userEl.classList.add('user-item', 'offline')
