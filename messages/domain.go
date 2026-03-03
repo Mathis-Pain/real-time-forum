@@ -33,12 +33,13 @@ type IncomingMsg struct {
 
 // IsMine ajouté pour l'expéditeur ET le destinataire
 type OutgoingMsg struct {
-	Type      string `json:"type"`
-	Sender    string `json:"sender"`
-	SenderID  int    `json:"sender_id"`
-	Content   string `json:"content"`
-	CreatedAt string `json:"created_at"`
-	IsMine    bool   `json:"is_mine"`
+	Type       string `json:"type"`
+	Sender     string `json:"sender"`
+	SenderID   int    `json:"sender_id"`
+	ReceiverID int    `json:"receiver_id"`
+	Content    string `json:"content"`
+	CreatedAt  string `json:"created_at"`
+	IsMine     bool   `json:"is_mine"`
 }
 
 type HistoryMsg struct {

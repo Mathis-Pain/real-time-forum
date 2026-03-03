@@ -50,12 +50,13 @@ func HandleMessages() {
 		// Message pour le DESTINATAIRE
 		// IsMine = false car ce n’est pas son message
 		receiverMsg, _ := json.Marshal(OutgoingMsg{
-			Type:      "message",
-			Sender:    msg.SenderName,
-			SenderID:  msg.SenderID,
-			Content:   msg.Content,
-			CreatedAt: createdAt,
-			IsMine:    false,
+			Type:       "message",
+			Sender:     msg.SenderName,
+			SenderID:   msg.SenderID,
+			ReceiverID: msg.ReceiverID,
+			Content:    msg.Content,
+			CreatedAt:  createdAt,
+			IsMine:     false,
 		})
 
 		// Message pour l’EXPÉDITEUR

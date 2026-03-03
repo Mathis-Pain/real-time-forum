@@ -1,7 +1,6 @@
 import {ToggleRegisterFrom} from './JS/connection.js'
 import {CreateAccount} from './JS/create-account.js'
 import {Authentication} from './JS/authentication.js'
-import {showApp} from './JS/layout.js'
 const authContainer = document.getElementById('auth-container')
 const appContainer = document.getElementById('app-container')
 
@@ -27,7 +26,6 @@ document.addEventListener('DOMContentLoaded', () => {
       return res.json()
     })
     .then((user) => {
-      showApp()
       document.getElementById('welcome-message').textContent =
         `Bienvenue, ${user.nickname} !`
     })

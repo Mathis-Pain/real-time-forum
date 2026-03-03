@@ -1,12 +1,8 @@
-import {Logout} from './authentication.js'
-import {handleChatClick} from './chat/chat.js'
-import {initWebSocket, addMessageHandler} from './chat/websocket.js'
 import {postLayout} from './display-post-comments.js'
 import {renderCreatePost} from './post-service.js'
 
 const header = document.getElementById('header')
 const main = document.getElementById('main-content')
-const sideBar = document.getElementById('sidebar')
 
 function buildHeader() {
   header.innerHTML = `<div class="header-left">
@@ -45,120 +41,10 @@ function buildHeader() {
   const postBtn = document.getElementById('new-post-btn')
   postBtn.addEventListener('click', renderCreatePost)
 
-  const logoutBtn = document.getElementById('logoutBtn')
-  logoutBtn.addEventListener('click', Logout)
-
   document.getElementById('home-btn').addEventListener('click', async () => {
     const posts = await loadPosts()
     buildMain(posts)
   })
-}
-
-export function buildSidebar() {
-  sideBar.innerHTML = `<h2>Utilisateurs</h2>
-  <div class="users-list"></div>`
-
-  const ws = initWebSocket()
-
-  ws.addEventListener('open', () => {
-    console.log('WebSocket prêt, chargement utilisateurs...')
-    loadAllUsers()
-  })
-
-  if (ws.readyState === WebSocket.OPEN) {
-    loadAllUsers()
-  }
-
-  addMessageHandler(handleSidebarMessages)
-}
-
-function handleSidebarMessages(data) {
-  if (data.type === 'message') {
-    const userItem = document.querySelector(
-      `.user-item[data-user-id="${data.sender_id}"]`
-    )
-    if (userItem) {
-      userItem.classList.add('has-notification')
-    }
-  }
-
-  if (data.type === 'online_users') {
-    console.log('Mise à jour utilisateurs en ligne:', data.users)
-    updateSidebarOnlineStatus(data.users)
-  }
-}
-
-function updateSidebarOnlineStatus(onlineUsers) {
-  const onlineIds = new Set(onlineUsers.map((u) => u.id))
-
-  const userItems = document.querySelectorAll('#sidebar .user-item')
-
-  if (userItems.length === 0) {
-    console.warn('Aucun user-item dans la sidebar')
-    return
-  }
-
-  userItems.forEach((el) => {
-    const userId = parseInt(el.dataset.userId)
-
-    if (onlineIds.has(userId)) {
-      el.classList.remove('offline')
-      el.classList.add('online')
-    } else {
-      el.classList.remove('online')
-      el.classList.add('offline')
-    }
-  })
-
-  console.log(
-    `${onlineIds.size} utilisateurs en ligne sur ${userItems.length} total`
-  )
-}
-
-async function loadAllUsers() {
-  const usersList = document.querySelector('.users-list')
-
-  if (!usersList) {
-    console.error('.users-list introuvable dans le DOM !')
-    return
-  }
-
-  console.log('Chargement des utilisateurs...')
-
-  try {
-    const response = await fetch('/api/users')
-    if (!response.ok) throw new Error('Erreur récupération utilisateurs')
-
-    const allUsers = await response.json()
-    console.log('Utilisateurs chargés:', allUsers)
-
-    usersList.innerHTML = ''
-
-    if (allUsers.length === 0) {
-      console.warn('Aucun utilisateur trouvé dans la base')
-      usersList.innerHTML = '<p>Aucun utilisateur</p>'
-      return
-    }
-
-    allUsers.forEach((user) => {
-      console.log(`Utilisateur: ${user.nickname} (online: ${user.online})`)
-      const userEl = document.createElement('div')
-      userEl.classList.add('user-item')
-      userEl.textContent = user.nickname
-      userEl.dataset.userId = user.id
-
-      userEl.addEventListener('click', () => {
-        userEl.classList.remove('has-notification')
-        handleChatClick(user.id, user.nickname)
-      })
-
-      usersList.appendChild(userEl)
-    })
-
-    console.log(`${allUsers.length} utilisateurs affichés`)
-  } catch (error) {
-    console.error('Erreur chargement utilisateurs:', error)
-  }
 }
 
 function buildMain(posts = []) {
@@ -204,11 +90,10 @@ async function showApp() {
   document.getElementById('auth-container').style.display = 'none'
   document.getElementById('app-container').style.display = 'contents'
   buildHeader()
-  buildSidebar()
 
   const posts = await loadPosts()
   console.log(posts)
   buildMain(posts)
 }
 
-export {header, main, sideBar, buildHeader, showApp}
+export {header, main, buildHeader, showApp}
