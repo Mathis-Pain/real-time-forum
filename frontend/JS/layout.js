@@ -1,6 +1,7 @@
 import {renderCreatePost, loadCategories} from './post-service.js'
 import {Logout} from './authentication.js'
 import {postLayout} from './display-post-comments.js'
+import {openChatWith} from './chat.js'
 
 const header = document.getElementById('header')
 const main = document.getElementById('main-content')
@@ -25,21 +26,18 @@ function buildHeader() {
       <button id="logoutBtn">Déconnexion</button>
     </div>
 `
-loadCategories()
+  loadCategories()
 
-const categorySelect = document.getElementById("category");
-
-categorySelect.addEventListener("change", async () => {
-  const category = categorySelect.value;
-  try {
+  const categorySelect = document.getElementById("category");
+  categorySelect.addEventListener("change", async () => {
+    const category = categorySelect.value;
+    try {
       const res = await fetch(`/post?id=0&category=${category}`)
       if (!res.ok) {
         console.error('Erreur fetch posts:', res.status, await res.text())
         return
       }
       const data = await res.json()
-      console.log("Réponse brute :", data);
-      console.log('Posts reçus:', data.allposts)
       buildMain(data.allposts)
     } catch (err) {
       console.error('Erreur fetch posts:', err)
@@ -48,11 +46,7 @@ categorySelect.addEventListener("change", async () => {
 
   document.getElementById('logoutBtn').addEventListener('click', async () => {
     try {
-      const response = await fetch('/logout', {
-        method: 'POST',
-        credentials: 'include'
-      })
-
+      const response = await fetch('/logout', { method: 'POST', credentials: 'include' })
       if (response.ok) {
         alert('Déconnecté avec succès !')
       } else {
@@ -63,65 +57,76 @@ categorySelect.addEventListener("change", async () => {
     }
   })
 
-  const postBtn = document.getElementById('new-post-btn')
-  postBtn.addEventListener('click', renderCreatePost)
-  const logoutBtn = document.getElementById('logoutBtn')
-  logoutBtn.addEventListener('click', Logout)
-
+  document.getElementById('new-post-btn').addEventListener('click', renderCreatePost)
+  document.getElementById('logoutBtn').addEventListener('click', Logout)
   document.getElementById('home-btn').addEventListener('click', async () => {
     const posts = await loadPosts()
     buildMain(posts)
   })
 }
 
+// ✅ Construire la sidebar
+async function buildSidebar() {
+  sideBar.innerHTML = `<h2>Utilisateurs</h2>
+  <div class="users-list"></div>`
+
+  await loadAllUsers() // ✅ attendre que les users soient dans le DOM
+
+  // ✅ Appel immédiat
+  fetch("/online-users")
+    .then(res => res.json())
+    .then(updateUsersList)
+
+  // ✅ Polling toutes les 3s APRÈS que .users-list est peuplé
+  setInterval(() => {
+    fetch("/online-users")
+      .then(res => res.json())
+      .then(updateUsersList)
+  }, 3000)
+}
 
 // ✅ Charger tous les utilisateurs depuis l'API
 async function loadAllUsers() {
   const usersList = document.querySelector('.users-list')
-
   if (!usersList) {
     console.error('❌ .users-list introuvable dans le DOM !')
     return
   }
-
-  console.log('🔄 Chargement des utilisateurs...')
 
   try {
     const response = await fetch('/api/users')
     if (!response.ok) throw new Error('Erreur récupération utilisateurs')
 
     const allUsers = await response.json()
-    console.log('✅ Utilisateurs chargés:', allUsers)
-
     usersList.innerHTML = ''
 
     if (allUsers.length === 0) {
-      console.warn('⚠️ Aucun utilisateur trouvé dans la base')
       usersList.innerHTML = '<p>Aucun utilisateur</p>'
       return
     }
 
     allUsers.forEach((user) => {
       const userEl = document.createElement('div')
-      userEl.classList.add('user-item')
-
-      // ✅ Par défaut, tous sont hors ligne (classe .offline)
-      userEl.classList.add('offline')
-
-      userEl.textContent = user.nickname
+      userEl.classList.add('user-item', 'offline')
       userEl.dataset.userId = user.id
+      userEl.dataset.userName = user.nickname // ✅ pour la comparaison
+
+      // ✅ Point de statut
+      const dot = document.createElement('span')
+      dot.classList.add('status-dot', 'dot-red')
+      userEl.appendChild(dot)
+
+      const name = document.createElement('span')
+      name.textContent = user.nickname
+      userEl.appendChild(name)
 
       userEl.addEventListener('click', () => {
         userEl.classList.remove('has-notification')
-        handleChatClick(null, user.id, user.nickname)
+        openChatWith(user.nickname)
       })
 
       usersList.appendChild(userEl)
     })
-
-    console.log(
-      `✅ ${allUsers.length} utilisateurs affichés (hors ligne par défaut)`
-    )
   } catch (error) {
     console.error('❌ Erreur chargement utilisateurs:', error)
   }
@@ -135,29 +140,21 @@ function updateUsersList(onlineUsers) {
     return
   }
 
-  // ✅ Créer un Set des IDs en ligne
   const onlineUserIds = new Set(onlineUsers.map((u) => u.id))
-  console.log('🟢 Utilisateurs en ligne:', Array.from(onlineUserIds))
 
-  // ✅ Parcourir tous les .user-item et mettre à jour leur statut
   const userItems = usersList.querySelectorAll('.user-item')
-
-  if (userItems.length === 0) {
-    console.warn('⚠️ Aucun .user-item trouvé pour mise à jour')
-    return
-  }
-
   userItems.forEach((userEl) => {
     const userId = parseInt(userEl.dataset.userId)
+    const dot = userEl.querySelector('.status-dot')
 
     if (onlineUserIds.has(userId)) {
-      // 🟢 En ligne → retirer .offline
       userEl.classList.remove('offline')
-      console.log(`🟢 ${userEl.textContent} est EN LIGNE`)
+      userEl.classList.add('online')
+      if (dot) { dot.classList.remove('dot-red'); dot.classList.add('dot-green') }
     } else {
-      // 🔴 Hors ligne → ajouter .offline
+      userEl.classList.remove('online')
       userEl.classList.add('offline')
-      console.log(`🔴 ${userEl.textContent} est HORS LIGNE`)
+      if (dot) { dot.classList.remove('dot-green'); dot.classList.add('dot-red') }
     }
   })
 }
@@ -166,7 +163,6 @@ async function buildMain(posts = []) {
   if (!Array.isArray(posts)) posts = [];
   const res = await fetch("/categories")
   const categories = await res.json();
-  console.log("categories:", categories);
 
   const catMap = {};
   categories.forEach(c => catMap[c.id] = c.name);
@@ -182,22 +178,17 @@ async function buildMain(posts = []) {
   `
 
   const list = document.getElementById('posts-list')
-
   posts.forEach((post) => {
     const div = document.createElement('div')
     div.classList.add('posts-row')
 
-    const categoryNames = (post.category_ids || [])
-    .map(id => catMap[id])
-    .join(', ');
-
+    const categoryNames = (post.category_ids || []).map(id => catMap[id]).join(', ');
     div.innerHTML = `
       <span>${truncate(post.title, 30)}</span>
       <span>${categoryNames}</span>
       <span>${truncate(post.content, 50)}</span>
     `
     div.addEventListener('click', () => postLayout(post.id))
-
     list.appendChild(div)
   })
 }
@@ -207,7 +198,6 @@ function truncate(text, max = 50) {
   return text.length > max ? text.slice(0, max) + "..." : text;
 }
 
-
 async function loadPosts() {
   const res = await fetch('/post?id=0')
   if (!res.ok) {
@@ -215,7 +205,6 @@ async function loadPosts() {
     return []
   }
   const data = await res.json()
-  console.log(data.allposts)
   return data.allposts
 }
 
@@ -223,9 +212,9 @@ async function showApp() {
   document.getElementById('auth-container').style.display = 'none'
   document.getElementById('app-container').style.display = 'contents'
   buildHeader()
+  await buildSidebar()
 
   const posts = await loadPosts()
-  console.log(posts)
   buildMain(posts)
 }
 
