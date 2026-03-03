@@ -234,15 +234,21 @@ async function buildMain(posts = []) {
     .join(', ');
 
     div.innerHTML = `
-      <span>${post.title}</span>
+      <span>${truncate(post.title, 30)}</span>
       <span>${categoryNames}</span>
-      <span>${post.content}</span>
+      <span>${truncate(post.content, 50)}</span>
     `
     div.addEventListener('click', () => postLayout(post.id))
 
     list.appendChild(div)
   })
 }
+
+function truncate(text, max = 50) {
+  if (!text) return "";
+  return text.length > max ? text.slice(0, max) + "..." : text;
+}
+
 
 async function loadPosts() {
   const res = await fetch('/post?id=0')
