@@ -90,7 +90,7 @@ function appendMessageToChat(msg) {
 
     const div = document.createElement("div");
     const date = new Date(msg.created_at);
-    const timeStr = isNaN(date.getTime()) ? "" : date.toLocaleTimeString();
+    const timeStr = date.toLocaleDateString() + " " + date.toLocaleTimeString()
     const from = msg.from || "Moi";
 
     div.classList.add("message-bubble");

@@ -104,7 +104,6 @@ async function loadAllUsers() {
       usersList.innerHTML = '<p>Aucun utilisateur</p>'
       return
     }
-
     allUsers.forEach((user) => {
       const userEl = document.createElement('div')
       userEl.classList.add('user-item', 'offline')
