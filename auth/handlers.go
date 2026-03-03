@@ -77,6 +77,8 @@ func LoginHandler(db *sql.DB) http.HandlerFunc {
 				Expires:  time.Now().Add(24 * time.Hour),
 				HttpOnly: true,
 				Path:     "/",
+				SameSite: http.SameSiteLaxMode,
+				Secure:   false,
 			})
 
 			var nickname string

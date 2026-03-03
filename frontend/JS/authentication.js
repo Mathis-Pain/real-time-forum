@@ -1,4 +1,7 @@
 import { showApp } from "./layout.js";
+import { updateOnlineUsers } from "./sidebar.js";
+import { initWebSocket } from "/frontend/JS/chat.js";
+
 
 export function Authentication() {
 	const connectionForm = document.querySelector(".connection-form");
@@ -31,6 +34,7 @@ export function Authentication() {
 				console.log("Réponse serveur :", data);
 				if (data.success) {
 					showApp();
+					initWebSocket();
 
 					const registerForm = document.querySelector(".register-form");
 					const forumSection = document.querySelector(".forum-section");
@@ -44,6 +48,11 @@ export function Authentication() {
 
 					// Mettre le pseudo dans le message
 					welcomeMessage.textContent = `Bienvenue, ${data.user.nickname} !`;
+					setInterval(() => {
+						fetch("/online-users")
+						.then(res => res.json()) 
+						.then(updateOnlineUsers); 
+					}, 3000);
 				} else {
 					alert("Utilisateur inconnu ou mauvais mot de passe");
 				}

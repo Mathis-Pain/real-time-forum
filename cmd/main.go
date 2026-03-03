@@ -54,6 +54,8 @@ func main() {
 		db, err = config.RunDB(pathDB)
 		config.InspectDbIntegrity(db)
 	}
+	messages.Init(db)
+	go messages.HubInstance.Run()
 	if err != nil {
 		log.Fatalf("Database error: %v", err)
 	}
@@ -80,8 +82,6 @@ func main() {
 		}
 	}()
 	// MARK: WebSocket
-	// Lancer la goroutine de diffusion
-	go messages.HandleMessages()
 
 	fmt.Println("WebSocket disponible sur ws://localhost" + port + "/ws")
 	// Routes HTTP normales (à adapter selon votre code)

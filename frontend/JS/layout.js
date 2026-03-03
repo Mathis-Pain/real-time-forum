@@ -1,7 +1,5 @@
 import {renderCreatePost, loadCategories} from './post-service.js'
 import {Logout} from './authentication.js'
-import {handleChatClick} from './chat/chat.js'
-import {initWebSocket, addMessageHandler} from './chat/websocket.js'
 import {postLayout} from './display-post-comments.js'
 
 const header = document.getElementById('header')
@@ -76,46 +74,6 @@ categorySelect.addEventListener("change", async () => {
   })
 }
 
-function buildSidebar() {
-  sideBar.innerHTML = `<h2>Utilisateurs</h2>
-  <div class="users-list"></div>`
-
-  // ✅ Initialiser WebSocket AVANT de charger les utilisateurs
-  const ws = initWebSocket()
-
-  // ✅ Attendre que le WebSocket soit connecté
-  ws.addEventListener('open', () => {
-    console.log('✅ WebSocket prêt, chargement utilisateurs...')
-    loadAllUsers()
-  })
-
-  // ✅ Si déjà connecté, charger immédiatement
-  if (ws.readyState === WebSocket.OPEN) {
-    loadAllUsers()
-  }
-
-  // ✅ Enregistrer le gestionnaire de messages pour la sidebar
-  addMessageHandler(handleSidebarMessages)
-}
-
-// ✅ Gestionnaire de messages WebSocket pour la sidebar
-function handleSidebarMessages(data) {
-  // ✅ Mise à jour des utilisateurs en ligne
-  if (data.type === 'online_users') {
-    console.log('📡 [SIDEBAR] Mise à jour utilisateurs:', data.users)
-    updateUsersList(data.users)
-  }
-
-  // ✅ Notification pour nouveau message
-  if (data.type === 'message') {
-    const userItem = document.querySelector(
-      `.user-item[data-user-id="${data.sender_id}"]`
-    )
-    if (userItem) {
-      userItem.classList.add('has-notification')
-    }
-  }
-}
 
 // ✅ Charger tous les utilisateurs depuis l'API
 async function loadAllUsers() {
@@ -265,7 +223,6 @@ async function showApp() {
   document.getElementById('auth-container').style.display = 'none'
   document.getElementById('app-container').style.display = 'contents'
   buildHeader()
-  buildSidebar()
 
   const posts = await loadPosts()
   console.log(posts)
