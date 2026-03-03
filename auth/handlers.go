@@ -79,8 +79,15 @@ func LoginHandler(db *sql.DB) http.HandlerFunc {
 				Path:     "/",
 			})
 
+			var nickname string
+			err = db.QueryRow("SELECT UserName FROM users WHERE id = ?", userID).Scan(&nickname)
+			if err != nil {
+				http.Error(w, "Impossible de récupérer le pseudo", http.StatusInternalServerError)
+				return
+			}
+
 			res.Success = true
-			res.User.Nickname = req.Login
+			res.User.Nickname = nickname
 
 		} else {
 			res.Success = false
