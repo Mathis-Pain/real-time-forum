@@ -97,6 +97,7 @@ async function loadAllUsers() {
       usersList.innerHTML = '<p>Aucun utilisateur</p>'
       return
     }
+
     allUsers = allUsers.sort((a, b) => a.nickname.localeCompare(b.nickname))
     allUsers.forEach((user) => {
       const userEl = document.createElement('div')

@@ -1,7 +1,9 @@
 import {updateUsersList} from './layout.js'
-
+let isLoading = false // Empêche les doubles requêtes
 let socket = null
 let currentChatUser = null
+let currentOffset = 0 // Suivi du nombre de messages chargés
+const LIMIT = 10 // Nombre de messages par "paquet"
 
 export function initWebSocket() {
   socket = new WebSocket(`ws://${window.location.host}/ws`)
@@ -29,11 +31,15 @@ export function initWebSocket() {
 
 function handleIncomingPrivateMessage(msg) {
   const userItems = document.querySelectorAll('.user-item')
+  const chatBox = document.querySelector('.message-received')
+
   if (
     currentChatUser &&
     (msg.from === currentChatUser || msg.to === currentChatUser)
   ) {
-    appendMessageToChat(msg)
+    const chatBox = document.querySelector('.message-received')
+
+    appendMessageToChat(msg, chatBox, false)
     return
   }
   userItems.forEach((user) => {
@@ -45,12 +51,12 @@ function handleIncomingPrivateMessage(msg) {
 
 export function openChatWith(userName) {
   currentChatUser = userName
+  currentOffset = 0 // Reset pour la nouvelle conversation
 
   const main = document.getElementById('main-content')
   main.innerHTML = `
         <h2>Message avec ${userName}</h2>
         <div class="messages">
-          <div class="users-list"></div>
           <div class="conversation">
             <div class="message-received"></div>
             <div class="message-content">
@@ -64,26 +70,82 @@ export function openChatWith(userName) {
   const textarea = main.querySelector('.message-sender')
   const sendBtn = main.querySelector('.send-message')
 
-  // Charger l'historique
-  fetch(`/messages/history?with=${encodeURIComponent(userName)}`)
-    .then((res) => res.json())
-    .then((messages) => {
-      if (!messages) return
-      messages.reverse().forEach((m) => appendMessageToChat(m))
-      chatBox.scrollTop = chatBox.scrollHeight
-    })
-    .catch((err) => console.error('Erreur chargement historique:', err))
+  // 1. Premier chargement (les 10 derniers messages)
+  loadHistory(userName, chatBox, true)
 
-  // Envoi avec le bouton
+  let isProgrammaticScroll = false
+
+  chatBox.addEventListener('scroll', () => {
+    if (isProgrammaticScroll) return // ← ignore les scrolls programmatiques
+    if (chatBox.scrollTop <= 5 && !isLoading && currentOffset > 0) {
+      loadHistory(userName, chatBox, false)
+    }
+  })
+
+  // Envoi de message
   sendBtn.addEventListener('click', () => sendMessage(userName, textarea))
-
-  // Envoi avec Entrée (Shift+Entrée pour saut de ligne)
   textarea.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
       sendMessage(userName, textarea)
     }
   })
+}
+
+function loadHistory(userName, chatBox, isInitial) {
+  if (isLoading) return
+  isLoading = true
+
+  fetch(
+    `/messages/history?with=${encodeURIComponent(userName)}&offset=${currentOffset}&limit=${LIMIT}`
+  )
+    .then((res) => res.json())
+    .then((messages) => {
+      if (!messages || messages.length === 0) {
+        isLoading = false
+        return
+      }
+      const oldScrollHeight = chatBox.scrollHeight
+
+      // Messages en DESC → on inverse pour ordre chronologique
+      const ordered = [...messages].reverse()
+
+      // Fragment pour insérer en une fois sans inverser l'ordre
+      const fragment = document.createDocumentFragment()
+      ordered.forEach((m) => fragment.appendChild(createMessageDiv(m)))
+      chatBox.insertBefore(fragment, chatBox.firstChild) // ← prepend propre
+
+      currentOffset += messages.length
+
+      if (isInitial) {
+        isProgrammaticScroll = true
+        chatBox.scrollTop = chatBox.scrollHeight
+        isProgrammaticScroll = false
+      } else {
+        isProgrammaticScroll = true
+        chatBox.scrollTop = chatBox.scrollHeight - oldScrollHeight
+        isProgrammaticScroll = false
+      }
+
+      isLoading = false
+    })
+    .catch((err) => {
+      console.error('Erreur historique:', err)
+      isLoading = false
+    })
+}
+
+// Extraction de la création du div (utilisé aussi dans appendMessageToChat)
+function createMessageDiv(msg) {
+  const div = document.createElement('div')
+  div.className = 'message-bubble'
+  div.style.padding = '4px 0'
+  const date = new Date(msg.created_at)
+  const timeStr = date.toLocaleString()
+  const from = msg.from || 'Moi'
+  div.innerHTML = `${timeStr}<strong>${from} :</strong> `
+  div.appendChild(document.createTextNode(msg.content))
+  return div
 }
 
 function sendMessage(userName, textarea) {
@@ -100,17 +162,13 @@ function sendMessage(userName, textarea) {
   textarea.value = ''
 }
 
-function appendMessageToChat(msg) {
-  const chatBox = document.querySelector('.message-received')
+function appendMessageToChat(msg, chatBox, isHistory) {
   if (!chatBox) return
-
-  const div = document.createElement('div')
-  const date = new Date(msg.created_at)
-  const timeStr = date.toLocaleString()
-  const from = msg.from || 'Moi'
-
-  div.classList.add('message-bubble')
-  div.innerHTML = `${timeStr}<strong> ${from} :</strong> ${msg.content}`
-  div.style.padding = '4px 0'
-  chatBox.appendChild(div)
+  const div = createMessageDiv(msg)
+  if (isHistory) {
+    chatBox.prepend(div)
+  } else {
+    chatBox.appendChild(div)
+    chatBox.scrollTop = chatBox.scrollHeight
+  }
 }

@@ -3,6 +3,7 @@ package messages
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 	"time"
 )
 
@@ -40,15 +41,25 @@ func GetHistoryHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	limit := 10
+	offset := 0
+	if offsetStr := r.URL.Query().Get("offset"); offsetStr != "" {
+		offset, _ = strconv.Atoi(offsetStr)
+	}
+
+	if limitStr := r.URL.Query().Get("limit"); limitStr != "" {
+		if l, err := strconv.Atoi(limitStr); err == nil && l > 0 {
+			limit = l
+		}
+	}
 
 	rows, err := db.Query(`
         SELECT SenderID, ReceiverID, Content, CreatedAt
         FROM messages
         WHERE (SenderID = ? AND ReceiverID = ?)
            OR (SenderID = ? AND ReceiverID = ?)
-        ORDER BY CreatedAt DESC
-        LIMIT ?
-    `, userName, other, other, userName, limit)
+        ORDER BY CreatedAt DESC, id DESC
+        LIMIT ? OFFSET ?
+    `, userName, other, other, userName, limit, offset)
 	if err != nil {
 		http.Error(w, "DB error", http.StatusInternalServerError)
 		return

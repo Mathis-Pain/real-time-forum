@@ -436,6 +436,31 @@ main-content chat
 ================================
 */
 
+.conversation {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.message-received {
+  border-radius: 10px;
+  width: 100%;
+  min-height: 0; /* ← empêche le flex parent d'ignorer la hauteur */
+  flex-shrink: 0; /* ← empêche la compression */
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #ddd;
+  padding: 10px;
+  background: #f9f9f9;
+  justify-content: flex-start;
+  box-sizing: border-box;
+}
+
+.message-received p {
+  margin-left: 0.5rem;
+}
+
 .messages {
   display: flex;
   flex-direction: column;
@@ -499,19 +524,11 @@ main-content chat
 .send-message:active {
   transform: scale(0.98);
 }
-.message-received {
-  justify-content: flex-start;
-  width: 100%;
-  height: 430px;
-  overflow-y: auto;
-  padding-top: 20px;
-}
+
 .msg-time {
   margin-right: 0.5rem;
 }
-.message-received p {
-  margin-left: 0.5rem;
-}
+
 .msg-sent,
 .msg-received {
   display: flex;
@@ -765,12 +782,14 @@ footer {
 
 /* ====== Ligne de post ====== */
 .posts-row {
-  background-color: rgba(255,255,255,0.9);
+  background-color: rgba(255, 255, 255, 0.9);
   padding: 15px 20px;
   margin: 10px auto;
   border-radius: 10px;
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
   cursor: pointer;
 }
 
@@ -801,32 +820,32 @@ footer {
   color: #666;
 }
 
-
 /**********************************************************************/
 /*MARK: AFFICHAGE D'UN POST ET SES COMMENTAIRES
 /**********************************************************************/
 .card {
   padding: 15px 20px;
   margin: 10px auto;
-      width: 86%;
-              max-width: 920px;
+  width: 86%;
+  max-width: 920px;
 
   border-radius: 10px;
-  background-color: rgba(255,255,255,0.9);
-  box-shadow: 0 3px 8px rgba(0,0,0,0.1);
-  transition: transform 0.2s, box-shadow 0.2s;
- 
+  background-color: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
 }
 
-.card span:last-child{
+.card span:last-child {
   color: #555;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 #post-card {
-    max-height: 150px;
-    word-wrap: break-word;
+  max-height: 150px;
+  word-wrap: break-word;
   overflow-wrap: break-word;
 }
 
@@ -838,47 +857,45 @@ footer {
   border-radius: 30px;
   padding: 2rem;
   width: 86%;
-          max-width: 920px;
+  max-width: 920px;
 
   height: 150px;
 }
 
 #comment-form textarea {
-border-radius: 18px;
-    background-color: var(--text-white);
-    width: 100%;
-    border: none;
-    padding: 10px;
-    height: 90px;
-    max-height: 90px;
+  border-radius: 18px;
+  background-color: var(--text-white);
+  width: 100%;
+  border: none;
+  padding: 10px;
+  height: 90px;
+  max-height: 90px;
 }
 
 #comment-btn {
-    font-weight: 400;
-    border: none;
-    margin-left: 10px;
-    background: var(--bg-grey-2);
-    color: white;
-    border-radius: 5px;
-    padding: 10px;
-    cursor: pointer;
-    height: fit-content;
-    width: fit-content;
+  font-weight: 400;
+  border: none;
+  margin-left: 10px;
+  background: var(--bg-grey-2);
+  color: white;
+  border-radius: 5px;
+  padding: 10px;
+  cursor: pointer;
+  height: fit-content;
+  width: fit-content;
 }
 
 #comment-btn:hover {
   background: var(--bg-grey-3);
-
 }
 
 #comments-card {
   display: flex;
   flex-direction: column;
-      width: 86%;
-        max-width: 920px;
- 
-  background-color: rgba(255,255,255,0.9);
+  width: 86%;
+  max-width: 920px;
 
+  background-color: rgba(255, 255, 255, 0.9);
 }
 .comment-row {
   max-height: 150px;
@@ -887,6 +904,6 @@ border-radius: 18px;
   margin-top: 10px;
   color: var(--text-white);
   background-color: var(--bg-grey-3);
-   word-wrap: break-word;
+  word-wrap: break-word;
   overflow-wrap: break-word;
 }
