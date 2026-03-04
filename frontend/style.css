@@ -436,6 +436,31 @@ main-content chat
 ================================
 */
 
+.conversation {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.message-received {
+  width: 100%;
+  height: 250px;
+  min-height: 0;        /* ← empêche le flex parent d'ignorer la hauteur */
+  flex-shrink: 0;       /* ← empêche la compression */
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #ddd;
+  padding: 10px;
+  background: #f9f9f9;
+  justify-content: flex-start;
+  box-sizing: border-box;
+}
+
+.message-received p {
+  margin-left: 0.5rem;
+}
+
 .messages {
   display: flex;
   flex-direction: column;
@@ -499,19 +524,11 @@ main-content chat
 .send-message:active {
   transform: scale(0.98);
 }
-.message-received {
-  justify-content: flex-start;
-  width: 100%;
-  height: 430px;
-  overflow-y: auto;
-  padding-top: 20px;
-}
+
 .msg-time {
   margin-right: 0.5rem;
 }
-.message-received p {
-  margin-left: 0.5rem;
-}
+
 .msg-sent,
 .msg-received {
   display: flex;
