@@ -28,9 +28,9 @@ function buildHeader() {
 `
   loadCategories()
 
-  const categorySelect = document.getElementById("category");
-  categorySelect.addEventListener("change", async () => {
-    const category = categorySelect.value;
+  const categorySelect = document.getElementById('category')
+  categorySelect.addEventListener('change', async () => {
+    const category = categorySelect.value
     try {
       const res = await fetch(`/post?id=0&category=${category}`)
       if (!res.ok) {
@@ -46,7 +46,10 @@ function buildHeader() {
 
   document.getElementById('logoutBtn').addEventListener('click', async () => {
     try {
-      const response = await fetch('/logout', { method: 'POST', credentials: 'include' })
+      const response = await fetch('/logout', {
+        method: 'POST',
+        credentials: 'include'
+      })
       if (response.ok) {
         alert('Déconnecté avec succès !')
       } else {
@@ -57,7 +60,9 @@ function buildHeader() {
     }
   })
 
-  document.getElementById('new-post-btn').addEventListener('click', renderCreatePost)
+  document
+    .getElementById('new-post-btn')
+    .addEventListener('click', renderCreatePost)
   document.getElementById('logoutBtn').addEventListener('click', Logout)
   document.getElementById('home-btn').addEventListener('click', async () => {
     const posts = await loadPosts()
@@ -71,18 +76,6 @@ async function buildSidebar() {
   <div class="users-list"></div>`
 
   await loadAllUsers() // ✅ attendre que les users soient dans le DOM
-
-  // ✅ Appel immédiat
-  fetch("/online-users")
-    .then(res => res.json())
-    .then(updateUsersList)
-
-  // ✅ Polling toutes les 3s APRÈS que .users-list est peuplé
-  setInterval(() => {
-    fetch("/online-users")
-      .then(res => res.json())
-      .then(updateUsersList)
-  }, 3000)
 }
 
 // ✅ Charger tous les utilisateurs depuis l'API
@@ -97,23 +90,19 @@ async function loadAllUsers() {
     const response = await fetch('/api/users')
     if (!response.ok) throw new Error('Erreur récupération utilisateurs')
 
-    const allUsers = await response.json()
+    let allUsers = await response.json()
     usersList.innerHTML = ''
 
     if (allUsers.length === 0) {
       usersList.innerHTML = '<p>Aucun utilisateur</p>'
       return
     }
+    allUsers = allUsers.sort((a, b) => a.nickname.localeCompare(b.nickname))
     allUsers.forEach((user) => {
       const userEl = document.createElement('div')
-      userEl.classList.add('user-item', 'offline')
+      userEl.classList.add('user-item')
       userEl.dataset.userId = user.id
       userEl.dataset.userName = user.nickname // ✅ pour la comparaison
-
-      // ✅ Point de statut
-      const dot = document.createElement('span')
-      dot.classList.add('status-dot', 'dot-red')
-      userEl.appendChild(dot)
 
       const name = document.createElement('span')
       name.textContent = user.nickname
@@ -127,44 +116,40 @@ async function loadAllUsers() {
       usersList.appendChild(userEl)
     })
   } catch (error) {
-    console.error('❌ Erreur chargement utilisateurs:', error)
+    console.error('Erreur chargement utilisateurs:', error)
   }
 }
 
 // ✅ Mettre à jour les statuts (en ligne/hors ligne)
-function updateUsersList(onlineUsers) {
+export function updateUsersList(onlineUsers) {
   const usersList = document.querySelector('.users-list')
   if (!usersList) {
-    console.error('❌ .users-list introuvable pour mise à jour')
+    console.error('❌ .users-list introuvable')
     return
   }
 
-  const onlineUserIds = new Set(onlineUsers.map((u) => u.id))
-
   const userItems = usersList.querySelectorAll('.user-item')
-  userItems.forEach((userEl) => {
-    const userId = parseInt(userEl.dataset.userId)
-    const dot = userEl.querySelector('.status-dot')
 
-    if (onlineUserIds.has(userId)) {
+  userItems.forEach((userEl) => {
+    const username = userEl.dataset.userName // important
+
+    if (onlineUsers.includes(username)) {
       userEl.classList.remove('offline')
       userEl.classList.add('online')
-      if (dot) { dot.classList.remove('dot-red'); dot.classList.add('dot-green') }
     } else {
       userEl.classList.remove('online')
       userEl.classList.add('offline')
-      if (dot) { dot.classList.remove('dot-green'); dot.classList.add('dot-red') }
     }
   })
 }
 
 async function buildMain(posts = []) {
-  if (!Array.isArray(posts)) posts = [];
-  const res = await fetch("/categories")
-  const categories = await res.json();
+  if (!Array.isArray(posts)) posts = []
+  const res = await fetch('/categories')
+  const categories = await res.json()
 
-  const catMap = {};
-  categories.forEach(c => catMap[c.id] = c.name);
+  const catMap = {}
+  categories.forEach((c) => (catMap[c.id] = c.name))
 
   main.innerHTML = `
     <h2>Posts</h2>
@@ -181,7 +166,9 @@ async function buildMain(posts = []) {
     const div = document.createElement('div')
     div.classList.add('posts-row')
 
-    const categoryNames = (post.category_ids || []).map(id => catMap[id]).join(', ');
+    const categoryNames = (post.category_ids || [])
+      .map((id) => catMap[id])
+      .join(', ')
     div.innerHTML = `
       <span>${truncate(post.title, 30)}</span>
       <span>${categoryNames}</span>
@@ -193,8 +180,8 @@ async function buildMain(posts = []) {
 }
 
 function truncate(text, max = 50) {
-  if (!text) return "";
-  return text.length > max ? text.slice(0, max) + "..." : text;
+  if (!text) return ''
+  return text.length > max ? text.slice(0, max) + '...' : text
 }
 
 async function loadPosts() {
@@ -217,4 +204,4 @@ async function showApp() {
   buildMain(posts)
 }
 
-export { header, main, sideBar, buildHeader, showApp, loadPosts, buildMain };
+export {header, main, sideBar, buildHeader, showApp, loadPosts, buildMain}

@@ -9,9 +9,8 @@ import (
 
 // ✅ Structure pour l'API (version simplifiée de User)
 type UserAPI struct {
-	ID         int    `json:"id"`
-	UserName   string `json:"nickname"`
-	UserOnline int    `json:"online"`
+	ID       int    `json:"id"`
+	UserName string `json:"nickname"`
 }
 
 // ✅ Handler pour récupérer tous les utilisateurs
@@ -27,9 +26,9 @@ func GetAllUsersHandler(db *sql.DB) http.HandlerFunc {
 
 		// ✅ Requête SQL
 		rows, err := db.Query(`
-            SELECT id, UserName, userOnline 
+            SELECT id, UserName
             FROM users 
-            ORDER BY userOnline DESC, UserName ASC
+         
         `)
 		if err != nil {
 			log.Printf("❌ Erreur SQL: %v\n", err)
@@ -42,7 +41,7 @@ func GetAllUsersHandler(db *sql.DB) http.HandlerFunc {
 		var users []UserAPI
 		for rows.Next() {
 			var user UserAPI
-			err := rows.Scan(&user.ID, &user.UserName, &user.UserOnline)
+			err := rows.Scan(&user.ID, &user.UserName)
 			if err != nil {
 				log.Printf("⚠️ Erreur scan: %v\n", err)
 				continue
