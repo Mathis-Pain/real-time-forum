@@ -154,29 +154,35 @@ async function buildMain(posts = []) {
 
   main.innerHTML = `
     <h2>Posts</h2>
-    <div class="posts-header">
-      <span>Titre</span>
-      <span>Catégorie(s)</span>
-      <span>Texte</span>
-    </div>
-    <div id="posts-list"></div>
+    <table id="posts-table">
+      <thead>
+        <tr>
+          <th>Catégorie(s)</th>
+          <th>Titre</th>
+          <th>Texte</th>
+        </tr>
+      </thead>
+      <tbody id="posts-list"></tbody>
+    </table>
+     <button id="returnHome">Retour à l'accueil</div>
   `
 
   const list = document.getElementById('posts-list')
   posts.forEach((post) => {
-    const div = document.createElement('div')
-    div.classList.add('posts-row')
+    const tr = document.createElement('tr')
+    tr.classList.add('posts-row')
 
     const categoryNames = (post.category_ids || [])
       .map((id) => catMap[id])
       .join(', ')
-    div.innerHTML = `
-      <span>${truncate(post.title, 30)}</span>
-      <span>${categoryNames}</span>
-      <span>${truncate(post.content, 50)}</span>
+
+    tr.innerHTML = `
+      <td>${categoryNames}</td>
+      <td>${truncate(post.title, 30)}</td>
+      <td>${truncate(post.content, 50)}</td>
     `
-    div.addEventListener('click', () => postLayout(post.id))
-    list.appendChild(div)
+    tr.addEventListener('click', () => postLayout(post.id))
+    list.appendChild(tr)
   })
 }
 

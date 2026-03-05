@@ -1,11 +1,11 @@
-import { main, showApp } from "./layout.js";
+import {main, showApp} from './layout.js'
 
-let isUsed = false;
+let isUsed = false
 
 function renderCreatePost() {
-    console.log("affichage formulaire post");
+  console.log('affichage formulaire post')
 
-    main.innerHTML = `
+  main.innerHTML = `
     <h2>Nouveau post</h2>
     <form id="post-form">
       <div class="title">
@@ -31,90 +31,88 @@ function renderCreatePost() {
 
       <p id="error"></p>
     </form>
-  `;
+    <button id="returnHome">Retour à l'accueil</div>
+  `
 
-    loadCategories();
+  loadCategories()
 
-    document
-        .getElementById("post-form")
-        .addEventListener("submit", handleCreatePost);
+  document
+    .getElementById('post-form')
+    .addEventListener('submit', handleCreatePost)
 }
 
 export async function loadCategories() {
-    try {
-        const res = await fetch("/categories");
-        const categories = await res.json();
+  try {
+    const res = await fetch('/categories')
+    const categories = await res.json()
 
-        const headerSelect = document.getElementById("category");
-        const formSelect = document.getElementById("post-category");
+    const headerSelect = document.getElementById('category')
+    const formSelect = document.getElementById('post-category')
 
-        // Remplir le select du header
-        if (headerSelect) {
-            headerSelect.innerHTML = `<option value="all">Tous les posts</option>`;
-            categories.forEach(cat => {
-                const option = document.createElement("option");
-                option.value = cat.id;
-                option.textContent = cat.name;
-                headerSelect.appendChild(option);
-            });
-        }
-
-        // Remplir le select du formulaire
-        if (formSelect) {
-            formSelect.innerHTML = `<option value="" disabled selected>Choisir une catégorie</option>`;
-            categories.forEach(cat => {
-                const option = document.createElement("option");
-                option.value = cat.id;
-                option.textContent = cat.name;
-                formSelect.appendChild(option);
-            });
-        }
-
-    } catch (err) {
-        console.error("Erreur chargement catégories :", err);
+    // Remplir le select du header
+    if (headerSelect) {
+      headerSelect.innerHTML = `<option value="all">Tous les posts</option>`
+      categories.forEach((cat) => {
+        const option = document.createElement('option')
+        option.value = cat.id
+        option.textContent = cat.name
+        headerSelect.appendChild(option)
+      })
     }
+
+    // Remplir le select du formulaire
+    if (formSelect) {
+      formSelect.innerHTML = `<option value="" disabled selected>Choisir une catégorie</option>`
+      categories.forEach((cat) => {
+        const option = document.createElement('option')
+        option.value = cat.id
+        option.textContent = cat.name
+        formSelect.appendChild(option)
+      })
+    }
+  } catch (err) {
+    console.error('Erreur chargement catégories :', err)
+  }
 }
 
-
 function getSelectedCategories(form) {
-    const categorySelect = document.getElementById("post-category");
+  const categorySelect = document.getElementById('post-category')
 
-    if (!categorySelect.value) return [];
+  if (!categorySelect.value) return []
 
-    return [Number(categorySelect.value)];
+  return [Number(categorySelect.value)]
 }
 
 async function handleCreatePost(e) {
-    isUsed = false;
-    e.preventDefault();
-    console.log("handleCreatePost");
+  isUsed = false
+  e.preventDefault()
+  console.log('handleCreatePost')
 
-    const form = e.target;
-    let categoriesId = getSelectedCategories(form);
+  const form = e.target
+  let categoriesId = getSelectedCategories(form)
 
-    const data = {
-        title: form.title.value,
-        content: form.message.value,
-        category_ids: categoriesId,
-    };
+  const data = {
+    title: form.title.value,
+    content: form.message.value,
+    category_ids: categoriesId
+  }
 
-    console.log(data);
+  console.log(data)
 
-    const res = await fetch("/post", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-    });
+  const res = await fetch('/post', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(data)
+  })
 
-    const result = await res.json();
+  const result = await res.json()
 
-    if (!res.ok) {
-        document.getElementById("error").textContent = result.error;
-    } else {
-        alert("Post créé !");
-        showApp();
-    }
+  if (!res.ok) {
+    document.getElementById('error').textContent = result.error
+  } else {
+    alert('Post créé !')
+    showApp()
+  }
 }
 
-export { renderCreatePost };
-
+export {renderCreatePost}

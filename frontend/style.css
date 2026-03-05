@@ -9,9 +9,9 @@
 
 :root {
   --bg-white: #ffffff;
-  --bg-grey-1: #d9d9d9;
-  --bg-grey-2: #737373;
-  --bg-grey-3: #444444;
+  --bg-grey-1: #dcd7c9;
+  --bg-grey-2: #a27b5c;
+  --bg-grey-3: #3f4e4f;
   --bg-light: #16213e;
   --text-dark: black;
   --text-gray: #94a3b8;
@@ -71,7 +71,8 @@ h1 {
 }
 .connection,
 .creation-account,
-.new-account-comeback {
+.new-account-comeback,
+#returnHome {
   font-weight: 400;
   margin-top: 10px;
   background: var(--bg-grey-3);
@@ -123,7 +124,6 @@ label {
 
 input,
 select {
-  width: 100%;
   padding: 0.7rem 0.9rem;
   font-size: 1rem;
   border-radius: 8px;
@@ -368,7 +368,8 @@ main-content post
   margin-top: 1rem;
   margin-bottom: 1rem;
 }
-#post-form {
+#post-form,
+#comment-form {
   display: flex;
   flex-direction: column;
   background: var(--bg-grey-1);
@@ -411,7 +412,8 @@ main-content post
   justify-content: center;
 }
 
-#newPost {
+#newPost,
+#comment-btn {
   font-weight: 400;
   border: none;
   margin-top: 1.5rem;
@@ -761,55 +763,72 @@ footer {
 /**********************************************************************/
 /*MARK: AFFICHAGE DES POSTS
 /**********************************************************************/
-
-/* ====== En-tête ====== */
-.posts-header,
-.posts-row {
-  display: grid;
-  grid-template-columns: 1fr 2fr 3fr;
-  column-gap: 15px;
-  max-width: 900px;
-  margin: 0 auto;
+#posts-table {
+  background-color: var(--bg-grey-1);
+  width: 90%;
+  border-radius: 30px;
+  padding: 2rem;
+  border-collapse: separate;
+  border-spacing: 0 10px;
+}
+#posts-table thead {
+  margin-bottom: 2rem;
+  background-color: var(--bg-grey-2);
+  color: white;
 }
 
+#posts-table tr {
+  text-align: center;
+}
+#posts-table thead th:first-child {
+  border-radius: 30px 0 0 30px;
+}
+
+#posts-table thead th:last-child {
+  border-radius: 0 30px 30px 0;
+}
+.posts-row td:first-child {
+  border-radius: 30px 0 0 30px;
+}
+.posts-row td:last-child {
+  border-radius: 0 30px 30px 0;
+}
+
+#posts-table td,
+#posts-table th {
+  padding: 1rem 1.5rem;
+}
+/* ====== En-tête ====== */
 .posts-header {
-  background-color: rgba(0, 0, 0, 0.15);
+  display: flex;
+  justify-content: space-between;
+  background-color: var(--bg-grey-1);
   padding: 10px 20px;
-  border-radius: 5px;
+  border-radius: 30px;
   font-weight: bold;
-  color: #222;
+  width: 90%;
+  padding: 1rem;
+}
+
+#posts-list {
+  width: 90%;
 }
 
 /* ====== Ligne de post ====== */
+
 .posts-row {
   background-color: rgba(255, 255, 255, 0.9);
-  padding: 15px 20px;
-  margin: 10px auto;
-  border-radius: 10px;
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
   transition:
     transform 0.2s,
     box-shadow 0.2s;
   cursor: pointer;
+  border-radius: 30px;
 }
 
 .posts-row:hover {
   transform: translateY(-3px);
   box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
-}
-
-/* ====== Texte ====== */
-.posts-row span:last-child {
-  color: #555;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* ====== Catégories ====== */
-.posts-row span:nth-child(2) {
-  color: #444;
-  font-weight: 500;
 }
 
 /* ====== Message "aucun sujet" ====== */
@@ -823,45 +842,33 @@ footer {
 /**********************************************************************/
 /*MARK: AFFICHAGE D'UN POST ET SES COMMENTAIRES
 /**********************************************************************/
-.card {
-  padding: 15px 20px;
-  margin: 10px auto;
-  width: 86%;
-  max-width: 920px;
-
-  border-radius: 10px;
-  background-color: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
-  transition:
-    transform 0.2s,
-    box-shadow 0.2s;
-}
-
-.card span:last-child {
-  color: #555;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
 #post-card {
-  max-height: 150px;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  background-color: var(--bg-grey-2);
+  width: 90%;
+  border-radius: 30px;
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+  padding: 2rem;
+}
+#post-card :nth-child(1),
+#post-card :nth-child(2),
+#post-card :nth-child(3) {
+  margin-top: 0.8rem;
+}
+#post-card :nth-child(3) {
+  background-color: white;
+  width: 100%;
+  border-radius: 30px;
+  padding: 10px;
 }
 
 #comment-form {
   display: flex;
-  flex-direction: row;
   align-items: center;
-  background: var(--bg-grey-3);
-  border-radius: 30px;
-  padding: 2rem;
-  width: 86%;
-  max-width: 920px;
-
-  height: 150px;
 }
-
 #comment-form textarea {
   border-radius: 18px;
   background-color: var(--text-white);
@@ -872,38 +879,21 @@ footer {
   max-height: 90px;
 }
 
-#comment-btn {
-  font-weight: 400;
-  border: none;
-  margin-left: 10px;
-  background: var(--bg-grey-2);
-  color: white;
-  border-radius: 5px;
-  padding: 10px;
-  cursor: pointer;
-  height: fit-content;
-  width: fit-content;
-}
-
-#comment-btn:hover {
-  background: var(--bg-grey-3);
+.comment-row {
+  background-color: white;
+  margin-top: 1rem;
+  padding: 1rem;
+  border-radius: 30px;
+  background-color: var(--bg-grey-2);
 }
 
 #comments-card {
+  background-color: var(--bg-grey-1);
   display: flex;
   flex-direction: column;
-  width: 86%;
-  max-width: 920px;
-
-  background-color: rgba(255, 255, 255, 0.9);
-}
-.comment-row {
-  max-height: 150px;
-  border-radius: 10px;
-  padding: 15px 20px;
-  margin-top: 10px;
-  color: var(--text-white);
-  background-color: var(--bg-grey-3);
-  word-wrap: break-word;
-  overflow-wrap: break-word;
+  width: 90%;
+  border-radius: 30px;
+  padding: 2rem;
+  justify-content: space-between;
+  margin-bottom: 2rem;
 }
