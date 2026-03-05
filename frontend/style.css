@@ -443,11 +443,10 @@ main-content chat
 }
 
 .message-received {
+  overflow-y: scroll;
   border-radius: 10px;
+  height: 290px;
   width: 100%;
-  min-height: 0; /* ← empêche le flex parent d'ignorer la hauteur */
-  flex-shrink: 0; /* ← empêche la compression */
-  overflow-y: auto;
   display: flex;
   flex-direction: column;
   border: 1px solid #ddd;
@@ -561,23 +560,24 @@ user-list
   justify-content: space-between;
   cursor: pointer;
 }
-
-/* ✅ Point VERT par défaut (utilisateur en ligne) */
 .user-item::after {
   content: '';
   width: 20px;
   height: 20px;
-  background-color: #22c55e; /* Vert */
   border-radius: 50%;
   flex-shrink: 0;
 }
+/*  Point VERT par défaut (utilisateur en ligne) */
+.user-item.online::after {
+  background-color: #22c55e; /* Vert */
+}
 
-/* ✅ Point ROUGE pour utilisateur hors ligne */
+/*  Point ROUGE pour utilisateur hors ligne */
 .user-item.offline::after {
   background-color: #ef4444; /* Rouge */
 }
 
-/* ✅ Point JAUNE pour notification */
+/*  Point JAUNE pour notification */
 .user-item.has-notification::after {
   background-color: #eec83f; /* Jaune */
   animation: pulse 1s infinite;

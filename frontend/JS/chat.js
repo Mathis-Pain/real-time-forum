@@ -3,6 +3,7 @@ let isLoading = false // Empêche les doubles requêtes
 let socket = null
 let currentChatUser = null
 let currentOffset = 0 // Suivi du nombre de messages chargés
+let isProgrammaticScroll = false
 const LIMIT = 10 // Nombre de messages par "paquet"
 
 export function initWebSocket() {
@@ -73,8 +74,6 @@ export function openChatWith(userName) {
   // 1. Premier chargement (les 10 derniers messages)
   loadHistory(userName, chatBox, true)
 
-  let isProgrammaticScroll = false
-
   chatBox.addEventListener('scroll', () => {
     if (isProgrammaticScroll) return // ← ignore les scrolls programmatiques
     if (chatBox.scrollTop <= 5 && !isLoading && currentOffset > 0) {
@@ -128,6 +127,12 @@ function loadHistory(userName, chatBox, isInitial) {
       }
 
       isLoading = false
+      if (
+        chatBox.scrollHeight <= chatBox.clientHeight &&
+        messages.length === LIMIT
+      ) {
+        loadHistory(userName, chatBox, false)
+      }
     })
     .catch((err) => {
       console.error('Erreur historique:', err)
