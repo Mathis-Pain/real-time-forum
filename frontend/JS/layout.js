@@ -164,7 +164,7 @@ async function buildMain(posts = []) {
       </thead>
       <tbody id="posts-list"></tbody>
     </table>
-     <button id="returnHome">Retour à l'accueil</div>
+   
   `
 
   const list = document.getElementById('posts-list')

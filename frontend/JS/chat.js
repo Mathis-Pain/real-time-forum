@@ -1,4 +1,4 @@
-import {updateUsersList} from './layout.js'
+import {updateUsersList, loadPosts, buildMain} from './layout.js'
 let isLoading = false // Empêche les doubles requêtes
 let socket = null
 let currentChatUser = null
@@ -65,8 +65,13 @@ export function openChatWith(userName) {
             </div>
             <button class="send-message">Envoyer</button>
           </div>
-        </div>`
-
+        </div>
+        <button id="returnHome">Retour à l'accueil</div>
+        `
+  document.getElementById('returnHome').addEventListener('click', async () => {
+    const posts = await loadPosts()
+    buildMain(posts)
+  })
   const chatBox = main.querySelector('.message-received')
   const textarea = main.querySelector('.message-sender')
   const sendBtn = main.querySelector('.send-message')

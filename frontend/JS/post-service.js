@@ -1,4 +1,4 @@
-import {main, showApp} from './layout.js'
+import {main, showApp, loadPosts, buildMain} from './layout.js'
 
 let isUsed = false
 
@@ -35,7 +35,10 @@ function renderCreatePost() {
   `
 
   loadCategories()
-
+  document.getElementById('returnHome').addEventListener('click', async () => {
+    const posts = await loadPosts()
+    buildMain(posts)
+  })
   document
     .getElementById('post-form')
     .addEventListener('submit', handleCreatePost)
