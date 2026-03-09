@@ -1,5 +1,5 @@
 import {renderCreatePost, loadCategories} from './post-service.js'
-import {Logout} from './authentication.js'
+import {Authentication, Logout} from './authentication.js'
 import {postLayout} from './display-post-comments.js'
 import {openChatWith} from './chat.js'
 
@@ -71,15 +71,15 @@ function buildHeader() {
 }
 
 // ✅ Construire la sidebar
-async function buildSidebar() {
+async function buildSidebar(client) {
   sideBar.innerHTML = `<h2>Utilisateurs</h2>
   <div class="users-list"></div>`
 
-  await loadAllUsers() // ✅ attendre que les users soient dans le DOM
+  await loadAllUsers(client) // ✅ attendre que les users soient dans le DOM
 }
 
 // ✅ Charger tous les utilisateurs depuis l'API
-async function loadAllUsers() {
+async function loadAllUsers(client) {
   const usersList = document.querySelector('.users-list')
   if (!usersList) {
     console.error('❌ .users-list introuvable dans le DOM !')
@@ -110,8 +110,11 @@ async function loadAllUsers() {
       userEl.appendChild(name)
 
       userEl.addEventListener('click', () => {
-        userEl.classList.remove('has-notification')
-        openChatWith(user.nickname)
+        let userItem = userEl.querySelector('span').textContent
+        if (client.nickname != userItem) {
+          userEl.classList.remove('has-notification')
+          openChatWith(user.nickname)
+        }
       })
 
       usersList.appendChild(userEl)
@@ -201,11 +204,11 @@ async function loadPosts() {
   return data.allposts
 }
 
-async function showApp() {
+async function showApp(client) {
   document.getElementById('auth-container').style.display = 'none'
   document.getElementById('app-container').style.display = 'contents'
   buildHeader()
-  await buildSidebar()
+  await buildSidebar(client)
 
   const posts = await loadPosts()
   buildMain(posts)

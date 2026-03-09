@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return res.json()
     })
     .then(async (user) => {
-      await showApp()
+      await showApp(user)
       document.getElementById('welcome-message').textContent =
         `Bienvenue, ${user.nickname} !`
       initWebSocket()
