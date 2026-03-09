@@ -29,6 +29,7 @@ func Server(port string, db *sql.DB) {
 	mux.Handle("/api/users", auth.AuthMiddleware(db)(http.HandlerFunc(users.GetAllUsersHandler(db))))
 	mux.Handle("/categories", auth.AuthMiddleware(db)(http.HandlerFunc(categories.CategoriesHandler(db))))
 	mux.Handle("/messages/history", auth.AuthMiddleware(db)(http.HandlerFunc(messages.GetHistoryHandler)))
+	mux.Handle("/messages/lastUser", auth.AuthMiddleware(db)(http.HandlerFunc(messages.GetLastUserMessage)))
 
 	// Quand l'utilisateur arrive, affiche mainPage.
 	mux.HandleFunc("/", users.MainPage)

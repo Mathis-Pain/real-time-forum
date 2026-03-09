@@ -3,6 +3,7 @@ import {CreateAccount} from './JS/create-account.js'
 import {Authentication} from './JS/authentication.js'
 import {showApp} from './JS/layout.js'
 import {initWebSocket} from './JS/chat.js'
+import {sortLastMessage} from './JS/sort-by-last-message.js'
 
 const authContainer = document.getElementById('auth-container')
 const appContainer = document.getElementById('app-container')
@@ -20,6 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
   ToggleRegisterFrom()
   CreateAccount()
   Authentication()
+  sortLastMessage()
 
   // On vérifie si une session existe déjà, envoie de la requête HTTP GET
   fetch('/auth/me', {
