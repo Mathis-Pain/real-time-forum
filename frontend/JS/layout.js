@@ -81,29 +81,40 @@ async function buildSidebar() {
 // ✅ Charger tous les utilisateurs depuis l'API
 async function loadAllUsers() {
   const usersList = document.querySelector('.users-list')
-  if (!usersList) {
-    console.error('❌ .users-list introuvable dans le DOM !')
-    return
-  }
+  if (!usersList) return
 
   try {
     const response = await fetch('/api/users')
     if (!response.ok) throw new Error('Erreur récupération utilisateurs')
 
-    let allUsers = await response.json()
+    const allUsers = await response.json()
     usersList.innerHTML = ''
 
+    console.log('👥 Users reçus de l\'API:', allUsers)
+    console.log('👥 Avec historique:', allUsers.filter(u => u.last_message_at !== null))
+    console.log('👥 Sans historique:', allUsers.filter(u => u.last_message_at === null))
+    
     if (allUsers.length === 0) {
       usersList.innerHTML = '<p>Aucun utilisateur</p>'
       return
     }
 
-    allUsers = allUsers.sort((a, b) => a.nickname.localeCompare(b.nickname))
-    allUsers.forEach((user) => {
+    // Séparer les users avec et sans historique
+    const withHistory    = allUsers.filter(u => u.last_message_at !== null)
+    const withoutHistory = allUsers.filter(u => u.last_message_at === null)
+
+    // Tri : récents en haut (déjà fait par SQL), puis alpha pour les autres
+    withoutHistory.sort((a, b) => a.nickname.localeCompare(b.nickname))
+
+    const sorted = withHistory.length > 0
+      ? [...withHistory, ...withoutHistory]  // mixte : récents d'abord
+      : withoutHistory                        // tous sans historique → alpha pur
+
+    sorted.forEach(user => {
       const userEl = document.createElement('div')
       userEl.classList.add('user-item')
-      userEl.dataset.userId = user.id
-      userEl.dataset.userName = user.nickname // ✅ pour la comparaison
+      userEl.dataset.userId   = user.id
+      userEl.dataset.userName = user.nickname
 
       const name = document.createElement('span')
       name.textContent = user.nickname
@@ -116,6 +127,7 @@ async function loadAllUsers() {
 
       usersList.appendChild(userEl)
     })
+
   } catch (error) {
     console.error('Erreur chargement utilisateurs:', error)
   }
@@ -211,4 +223,4 @@ async function showApp() {
   buildMain(posts)
 }
 
-export {header, main, sideBar, buildHeader, showApp, loadPosts, buildMain}
+export {header, main, sideBar, buildHeader, showApp, loadPosts, buildMain, loadAllUsers}

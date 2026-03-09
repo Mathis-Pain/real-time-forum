@@ -1,4 +1,4 @@
-import {updateUsersList, loadPosts, buildMain} from './layout.js'
+import {updateUsersList, loadPosts, buildMain, loadAllUsers} from './layout.js'
 let isLoading = false // Empêche les doubles requêtes
 let socket = null
 let currentChatUser = null
@@ -31,20 +31,17 @@ export function initWebSocket() {
 }
 
 function handleIncomingPrivateMessage(msg) {
-  const userItems = document.querySelectorAll('.user-item')
-  const chatBox = document.querySelector('.message-received')
+  // Re-trier la sidebar à chaque message reçu
+  loadAllUsers()
 
-  if (
-    currentChatUser &&
-    (msg.from === currentChatUser || msg.to === currentChatUser)
-  ) {
+  if (currentChatUser && (msg.from === currentChatUser || msg.to === currentChatUser)) {
     const chatBox = document.querySelector('.message-received')
-
     appendMessageToChat(msg, chatBox, false)
     return
   }
-  userItems.forEach((user) => {
-    if (user.dataset.userName == msg.from) {
+
+  document.querySelectorAll('.user-item').forEach((user) => {
+    if (user.dataset.userName === msg.from) {
       user.classList.add('has-notification')
     }
   })
@@ -162,14 +159,11 @@ function sendMessage(userName, textarea) {
   const content = textarea.value.trim()
   if (!content || !socket) return
 
-  const msg = {
-    type: 'private_message',
-    to: userName,
-    content: content
-  }
-
-  socket.send(JSON.stringify(msg))
+  socket.send(JSON.stringify({ type: 'private_message', to: userName, content }))
   textarea.value = ''
+
+  // Re-trier la sidebar après envoi
+  loadAllUsers()
 }
 
 function appendMessageToChat(msg, chatBox, isHistory) {
