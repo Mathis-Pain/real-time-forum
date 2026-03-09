@@ -78,6 +78,8 @@ async function buildSidebar() {
   await loadAllUsers() // ✅ attendre que les users soient dans le DOM
 }
 
+let lastOnlineUsers = []
+
 // ✅ Charger tous les utilisateurs depuis l'API
 async function loadAllUsers() {
   const usersList = document.querySelector('.users-list')
@@ -90,10 +92,6 @@ async function loadAllUsers() {
     const allUsers = await response.json()
     usersList.innerHTML = ''
 
-    console.log('👥 Users reçus de l\'API:', allUsers)
-    console.log('👥 Avec historique:', allUsers.filter(u => u.last_message_at !== null))
-    console.log('👥 Sans historique:', allUsers.filter(u => u.last_message_at === null))
-    
     if (allUsers.length === 0) {
       usersList.innerHTML = '<p>Aucun utilisateur</p>'
       return
@@ -127,6 +125,7 @@ async function loadAllUsers() {
 
       usersList.appendChild(userEl)
     })
+    updateUsersList(lastOnlineUsers)
 
   } catch (error) {
     console.error('Erreur chargement utilisateurs:', error)
@@ -135,6 +134,7 @@ async function loadAllUsers() {
 
 // ✅ Mettre à jour les statuts (en ligne/hors ligne)
 export function updateUsersList(onlineUsers) {
+  lastOnlineUsers = onlineUsers
   const usersList = document.querySelector('.users-list')
   if (!usersList) {
     console.error('❌ .users-list introuvable')
