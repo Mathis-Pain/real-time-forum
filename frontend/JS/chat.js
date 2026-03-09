@@ -1,4 +1,4 @@
-import {updateUsersList, loadPosts, buildMain, loadAllUsers} from './layout.js'
+import {updateUsersList, loadPosts, buildMain, loadAllUsers, pendingNotifications} from './layout.js'
 let isLoading = false // Empêche les doubles requêtes
 let socket = null
 let currentChatUser = null
@@ -30,21 +30,20 @@ export function initWebSocket() {
   }
 }
 
-function handleIncomingPrivateMessage(msg) {
-  // Re-trier la sidebar à chaque message reçu
-  loadAllUsers()
+async function handleIncomingPrivateMessage(msg) {
+  // 1. Ajouter la notification AVANT la reconstruction
+  if (!currentChatUser || (msg.from !== currentChatUser && msg.to !== currentChatUser)) {
+    pendingNotifications.add(msg.from)
+  }
 
+  // 2. Attendre que la sidebar soit reconstruite (await obligatoire)
+  await loadAllUsers()
+
+  // 3. Afficher le message si on est dans le bon chat
   if (currentChatUser && (msg.from === currentChatUser || msg.to === currentChatUser)) {
     const chatBox = document.querySelector('.message-received')
     appendMessageToChat(msg, chatBox, false)
-    return
   }
-
-  document.querySelectorAll('.user-item').forEach((user) => {
-    if (user.dataset.userName === msg.from) {
-      user.classList.add('has-notification')
-    }
-  })
 }
 
 export function openChatWith(userName) {

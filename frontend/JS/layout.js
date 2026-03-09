@@ -79,6 +79,7 @@ async function buildSidebar() {
 }
 
 let lastOnlineUsers = []
+let pendingNotifications = new Set() // Pour garder en mémoire durant la reconstruction qui a reçut un nouveau message.
 
 // ✅ Charger tous les utilisateurs depuis l'API
 async function loadAllUsers() {
@@ -114,12 +115,18 @@ async function loadAllUsers() {
       userEl.dataset.userId   = user.id
       userEl.dataset.userName = user.nickname
 
+    // Remet en place la notification du message reçu non lu, car la précédente notification est détruite par la reconstruction.
+    if (pendingNotifications.has(user.nickname)) {
+      userEl.classList.add('has-notification')
+    }
+
       const name = document.createElement('span')
       name.textContent = user.nickname
       userEl.appendChild(name)
 
       userEl.addEventListener('click', () => {
         userEl.classList.remove('has-notification')
+        pendingNotifications.delete(user.nickname) // ← nettoyer le Set au clic
         openChatWith(user.nickname)
       })
 
@@ -223,4 +230,4 @@ async function showApp() {
   buildMain(posts)
 }
 
-export {header, main, sideBar, buildHeader, showApp, loadPosts, buildMain, loadAllUsers}
+export {header, main, sideBar, buildHeader, showApp, loadPosts, buildMain, loadAllUsers, pendingNotifications}
