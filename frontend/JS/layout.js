@@ -126,10 +126,10 @@ async function loadAllUsers(client) {
       userEl.appendChild(name)
 
       userEl.addEventListener('click', () => {
+        pendingNotifications.delete(user.nickname) // ← nettoyer le Set au clic
         userEl.classList.remove('has-notification')
         let userItem = userEl.querySelector('span').textContent
         if (client.nickname != userItem) {
-          pendingNotifications.delete(user.nickname) // ← nettoyer le Set au clic
           openChatWith(user.nickname)
         }
       })

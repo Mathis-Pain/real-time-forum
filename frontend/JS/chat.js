@@ -1,4 +1,10 @@
-import {updateUsersList, loadPosts, buildMain, loadAllUsers, pendingNotifications} from './layout.js'
+import {
+  updateUsersList,
+  loadPosts,
+  buildMain,
+  loadAllUsers,
+  pendingNotifications
+} from './layout.js'
 let isLoading = false // Empêche les doubles requêtes
 let socket = null
 let currentChatUser = null
@@ -32,15 +38,21 @@ export function initWebSocket() {
 
 async function handleIncomingPrivateMessage(msg) {
   // 1. Ajouter la notification AVANT la reconstruction
-  if (!currentChatUser || (msg.from !== currentChatUser && msg.to !== currentChatUser)) {
+  if (
+    !currentChatUser ||
+    (msg.from !== currentChatUser && msg.to !== currentChatUser)
+  ) {
     pendingNotifications.add(msg.from)
   }
 
   // 2. Attendre que la sidebar soit reconstruite (await obligatoire)
-  await loadAllUsers()
+  await loadAllUsers(msg.from)
 
   // 3. Afficher le message si on est dans le bon chat
-  if (currentChatUser && (msg.from === currentChatUser || msg.to === currentChatUser)) {
+  if (
+    currentChatUser &&
+    (msg.from === currentChatUser || msg.to === currentChatUser)
+  ) {
     const chatBox = document.querySelector('.message-received')
     appendMessageToChat(msg, chatBox, false)
   }
@@ -158,7 +170,7 @@ function sendMessage(userName, textarea) {
   const content = textarea.value.trim()
   if (!content || !socket) return
 
-  socket.send(JSON.stringify({ type: 'private_message', to: userName, content }))
+  socket.send(JSON.stringify({type: 'private_message', to: userName, content}))
   textarea.value = ''
 
   // Re-trier la sidebar après envoi
