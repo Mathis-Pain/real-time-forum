@@ -161,7 +161,7 @@ function createMessageDiv(msg) {
   const date = new Date(msg.created_at)
   const timeStr = date.toLocaleString()
   const from = msg.from || 'Moi'
-  div.innerHTML = `${timeStr}<strong>${from} :</strong> `
+  div.innerHTML = `${timeStr} <strong>${from}:</strong> `
   div.appendChild(document.createTextNode(msg.content))
   return div
 }
