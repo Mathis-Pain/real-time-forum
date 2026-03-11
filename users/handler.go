@@ -1,61 +1,81 @@
 package users
 
 import (
-	"database/sql"
-	"encoding/json"
-	"log"
-	"net/http"
+    "database/sql"
+    "encoding/json"
+    "log"
+    "net/http"
 )
 
-// ✅ Structure pour l'API (version simplifiée de User)
 type UserAPI struct {
-	ID       int    `json:"id"`
-	UserName string `json:"nickname"`
+    ID            int     `json:"id"`
+    UserName      string  `json:"nickname"`
+    LastMessageAt *string `json:"last_message_at"`
 }
 
-// ✅ Handler pour récupérer tous les utilisateurs
 func GetAllUsersHandler(db *sql.DB) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		log.Println("📡 Requête /api/users reçue")
+    return func(w http.ResponseWriter, r *http.Request) {
+        log.Println("📡 Requête /api/users reçue")
 
-		// ✅ Vérifier la méthode HTTP
-		if r.Method != http.MethodGet {
-			http.Error(w, "Méthode non autorisée", http.StatusMethodNotAllowed)
-			return
-		}
+        if r.Method != http.MethodGet {
+            http.Error(w, "Méthode non autorisée", http.StatusMethodNotAllowed)
+            return
+        }
 
-		// ✅ Requête SQL
-		rows, err := db.Query(`
-            SELECT id, UserName
-            FROM users 
-         
-        `)
-		if err != nil {
-			log.Printf("❌ Erreur SQL: %v\n", err)
-			http.Error(w, "Erreur serveur", http.StatusInternalServerError)
-			return
-		}
-		defer rows.Close()
+        // Récupérer le user connecté via le cookie
+        cookie, err := r.Cookie("session_token")
+        if err != nil {
+            http.Error(w, "Unauthorized", http.StatusUnauthorized)
+            return
+        }
 
-		// ✅ Parcourir les résultats
-		var users []UserAPI
-		for rows.Next() {
-			var user UserAPI
-			err := rows.Scan(&user.ID, &user.UserName)
-			if err != nil {
-				log.Printf("⚠️ Erreur scan: %v\n", err)
-				continue
-			}
-			users = append(users, user)
-		}
+        var currentUser string
+        err = db.QueryRow(`
+            SELECT u.UserName FROM users u
+            JOIN session s ON s.UserID = u.id
+            WHERE s.Token = ? AND s.ExpiresAt > CURRENT_TIMESTAMP
+        `, cookie.Value).Scan(&currentUser)
+        if err != nil {
+            http.Error(w, "Unauthorized", http.StatusUnauthorized)
+            return
+        }
 
-		log.Printf("✅ %d utilisateurs trouvés\n", len(users))
+        rows, err := db.Query(`
+            SELECT 
+                u.id,
+                u.UserName,
+                MAX(m.CreatedAt) AS last_message_at
+            FROM users u
+            LEFT JOIN messages m 
+                ON (m.SenderID = ? AND m.ReceiverID = u.UserName)
+                OR (m.SenderID = u.UserName AND m.ReceiverID = ?)
+            WHERE u.UserName != ?
+            GROUP BY u.id, u.UserName
+            ORDER BY last_message_at DESC, u.UserName ASC
+        `, currentUser, currentUser, currentUser)
+        if err != nil {
+            log.Printf("❌ Erreur SQL: %v\n", err)
+            http.Error(w, "Erreur serveur", http.StatusInternalServerError)
+            return
+        }
+        defer rows.Close()
 
-		// ✅ Renvoyer le JSON
-		w.Header().Set("Content-Type", "application/json")
-		if err := json.NewEncoder(w).Encode(users); err != nil {
-			log.Printf("❌ Erreur encodage JSON: %v\n", err)
-			http.Error(w, "Erreur encodage", http.StatusInternalServerError)
-		}
-	}
+        var users []UserAPI
+        for rows.Next() {
+            var u UserAPI
+            if err := rows.Scan(&u.ID, &u.UserName, &u.LastMessageAt); err != nil {
+                log.Printf("⚠️ Erreur scan: %v\n", err)
+                continue
+            }
+            users = append(users, u)
+        }
+
+        if users == nil {
+            users = []UserAPI{}
+        }
+
+        log.Printf("✅ %d utilisateurs trouvés\n", len(users))
+        w.Header().Set("Content-Type", "application/json")
+        json.NewEncoder(w).Encode(users)
+    }
 }
