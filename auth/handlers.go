@@ -9,20 +9,6 @@ import (
 	"time"
 )
 
-// Json reçu depuis le frontend
-type LoginRequest struct {
-	Login    string `json:"login"`
-	Password string `json:"password"`
-}
-
-// représente le JSON renvoyé au client
-type LoginResponse struct {
-	Success bool `json:"success"`
-	User    struct {
-		Nickname string `json:"nickname"`
-	} `json:"user"`
-}
-
 func LoginHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {

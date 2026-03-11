@@ -2,27 +2,7 @@ package messages
 
 import (
 	"log"
-
-	"github.com/gorilla/websocket"
 )
-
-type Client struct {
-	UserName string
-	Conn     *websocket.Conn
-	Send     chan []byte
-}
-
-type Hub struct {
-	Clients    map[string]*Client
-	Register   chan *Client
-	Unregister chan *Client
-}
-
-var HubInstance = Hub{
-	Clients:    make(map[string]*Client),
-	Register:   make(chan *Client),
-	Unregister: make(chan *Client),
-}
 
 func (h *Hub) broadcastOnlineUsers() {
 	var users []string

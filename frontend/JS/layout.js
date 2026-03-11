@@ -1,5 +1,5 @@
 import {renderCreatePost, loadCategories} from './post-service.js'
-import {Authentication, Logout} from './authentication.js'
+import {Logout} from './authentication.js'
 import {postLayout} from './display-post-comments.js'
 import {openChatWith} from './chat.js'
 
@@ -70,18 +70,18 @@ function buildHeader() {
   })
 }
 
-// ✅ Construire la sidebar
+// Construire la sidebar
 async function buildSidebar(client) {
   sideBar.innerHTML = `<h2>Utilisateurs</h2>
   <div class="users-list"></div>`
 
-  await loadAllUsers(client) // ✅ attendre que les users soient dans le DOM
+  await loadAllUsers(client) // attendre que les users soient dans le DOM
 }
 
 let lastOnlineUsers = []
 let pendingNotifications = new Set() // Pour garder en mémoire durant la reconstruction qui a reçut un nouveau message.
 
-// ✅ Charger tous les utilisateurs depuis l'API
+// Charger tous les utilisateurs depuis l'API
 async function loadAllUsers(client) {
   const usersList = document.querySelector('.users-list')
   if (!usersList) return
@@ -127,8 +127,11 @@ async function loadAllUsers(client) {
 
       userEl.addEventListener('click', () => {
         userEl.classList.remove('has-notification')
-        pendingNotifications.delete(user.nickname) // ← nettoyer le Set au clic
-        openChatWith(user.nickname)
+        let userItem = userEl.querySelector('span').textContent
+        if (client.nickname != userItem) {
+          pendingNotifications.delete(user.nickname) // ← nettoyer le Set au clic
+          openChatWith(user.nickname)
+        }
       })
 
       usersList.appendChild(userEl)
@@ -139,12 +142,12 @@ async function loadAllUsers(client) {
   }
 }
 
-// ✅ Mettre à jour les statuts (en ligne/hors ligne)
+//  Mettre à jour les statuts (en ligne/hors ligne)
 export function updateUsersList(onlineUsers) {
   lastOnlineUsers = onlineUsers
   const usersList = document.querySelector('.users-list')
   if (!usersList) {
-    console.error('❌ .users-list introuvable')
+    console.error(' .users-list introuvable')
     return
   }
 

@@ -11,3 +11,17 @@ type Session struct {
 	UserAgent string
 	IP        string
 }
+
+// Json reçu depuis le frontend
+type LoginRequest struct {
+	Login    string `json:"login"`
+	Password string `json:"password"`
+}
+
+// représente le JSON renvoyé au client
+type LoginResponse struct {
+	Success bool `json:"success"`
+	User    struct {
+		Nickname string `json:"nickname"`
+	} `json:"user"`
+}

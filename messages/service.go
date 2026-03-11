@@ -20,20 +20,6 @@ func Init(database *sql.DB) {
 	db = database
 }
 
-type IncomingMessage struct {
-	Type    string `json:"type"`    // "private_message"
-	To      string `json:"to"`      // receiver username
-	Content string `json:"content"` // message text
-}
-
-type OutgoingMessage struct {
-	Type      string    `json:"type"`
-	From      string    `json:"from"`
-	To        string    `json:"to"`
-	Content   string    `json:"content"`
-	CreatedAt time.Time `json:"created_at"`
-}
-
 func WsHandler(w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {

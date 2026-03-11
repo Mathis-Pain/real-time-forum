@@ -4,15 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
-	"time"
 )
-
-type HistoryMessage struct {
-	From      string    `json:"from"`
-	To        string    `json:"to"`
-	Content   string    `json:"content"`
-	CreatedAt time.Time `json:"created_at"`
-}
 
 func GetHistoryHandler(w http.ResponseWriter, r *http.Request) {
 	// Auth via cookie

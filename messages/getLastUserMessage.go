@@ -3,14 +3,7 @@ package messages
 import (
 	"encoding/json"
 	"net/http"
-	"time"
 )
-
-type lastUserMessage struct {
-	From      string    `json:"from"`
-	To        string    `json:"to"`
-	CreatedAt time.Time `json:"created_at"`
-}
 
 func GetLastUserMessage(w http.ResponseWriter, r *http.Request) {
 

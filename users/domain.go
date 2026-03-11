@@ -10,3 +10,9 @@ type User struct {
 	Email     string
 	Password  string
 }
+
+type UserAPI struct {
+	ID            int     `json:"id"`
+	UserName      string  `json:"nickname"`
+	LastMessageAt *string `json:"last_message_at"`
+}
