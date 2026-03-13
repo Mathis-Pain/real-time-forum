@@ -92,7 +92,7 @@ export function openChatWith(userName) {
 
   chatBox.addEventListener('scroll', () => {
     if (isProgrammaticScroll) return // ← ignore les scrolls programmatiques
-    if (chatBox.scrollTop <= 5 && !isLoading && currentOffset > 0) {
+    if (chatBox.scrollTop <= 5 && !isLoading) {
       loadHistory(userName, chatBox, false)
     }
   })
@@ -143,12 +143,6 @@ function loadHistory(userName, chatBox, isInitial) {
       }
 
       isLoading = false
-      if (
-        chatBox.scrollHeight <= chatBox.clientHeight &&
-        messages.length === LIMIT
-      ) {
-        loadHistory(userName, chatBox, false)
-      }
     })
     .catch((err) => {
       console.error('Erreur historique:', err)
