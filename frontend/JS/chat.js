@@ -10,6 +10,7 @@ export let socket = null
 let currentChatUser = null
 let currentOffset = 0 // Suivi du nombre de messages chargés
 let isProgrammaticScroll = false
+export let onlineUsers = []
 const LIMIT = 10 // Nombre de messages par "paquet"
 
 export function initWebSocket() {
@@ -29,6 +30,7 @@ export function initWebSocket() {
     }
 
     if (data.type === 'online_users') {
+      onlineUsers = data.users
       updateUsersList(data.users)
     }
   }

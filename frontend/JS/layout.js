@@ -3,6 +3,7 @@ import {Logout} from './authentication.js'
 import {postLayout} from './display-post-comments.js'
 import {openChatWith} from './chat.js'
 import {socket} from './chat.js'
+import {onlineUsers} from './chat.js'
 
 const header = document.getElementById('header')
 const main = document.getElementById('main-content')
@@ -136,6 +137,7 @@ async function loadAllUsers(client) {
       })
 
       usersList.appendChild(userEl)
+      updateUsersList(onlineUsers) // forcer la mise à jour des statuts (en ligne/hors ligne) après reconstruction
     })
   } catch (error) {
     console.error('Erreur chargement utilisateurs:', error)
