@@ -4,17 +4,18 @@ import "time"
 
 type Comment struct {
 	ID        int
-	PostID    int    `json:"postid"`
-	AuthorID  int    `json:"authorid"`
-	Content   string `json:"content"`
-	CreatedAt time.Time
+	PostID    int       `json:"postid"`
+	AuthorID  int       `json:"authorid"`
+	Content   string    `json:"content"`
+	CreatedAt time.Time `json:"createdat"`
 	UpdatedAt time.Time
 }
 
 type CommentResponse struct {
-	ID       int
-	PostID   int    `json:"postid"`
-	AuthorID int    `json:"authorid"`
-	UserName string `json:"authorname"`
-	Content  string `json:"content"`
+	ID        int
+	PostID    int       `json:"postid"`
+	AuthorID  int       `json:"authorid"`
+	UserName  string    `json:"authorname"`
+	Content   string    `json:"content"`
+	CreatedAt time.Time `json:"createdat"`
 }

@@ -8,8 +8,8 @@ import (
 //IsValidMeta : exist post/author
 
 func SaveComment(db *sql.DB, comment *Comment) error {
-	query := `INSERT INTO comments (postid, authorid, content) VALUES (?, ?, ?)`
-	_, err := db.Exec(query, comment.PostID, comment.AuthorID, comment.Content)
+	query := `INSERT INTO comments (postid, authorid, content, createdat) VALUES (?, ?, ?, ?)`
+	_, err := db.Exec(query, comment.PostID, comment.AuthorID, comment.Content, comment.CreatedAt)
 	return err
 }
 

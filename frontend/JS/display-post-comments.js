@@ -29,6 +29,7 @@ async function postLayout(postId) {
   main.innerHTML = `
     <div id="post-card" class="card">
 	<span>Créateur: <strong>${author.username}</strong></span>
+  <span>${new Date(currentPost.createdat).toLocaleString('fr-FR')}</span>
       <span>Titre: <strong>${currentPost.title}</strong></span>
 	  <span>${currentPost.content}</span>
     </div>		
@@ -54,6 +55,7 @@ async function postLayout(postId) {
       div.classList.add('comment-row')
 
       div.innerHTML = `
+    <span>${new Date(comment.createdat).toLocaleString('fr-FR')}</span>
 		<span><strong>${comment.authorname}:</strong></span>
 		<span>${comment.content}</span>
 `

@@ -73,9 +73,9 @@ func GetAuthorInfo(db *sql.DB, id int) (users.User, error) {
 
 func GetPostData(db *sql.DB, id int) (Post, []comments.CommentResponse, users.User, error) {
 	var post Post
-	queryPost := `SELECT id, title, content, authorid FROM post WHERE id = ?`
+	queryPost := `SELECT id, title, content, authorid, createdat FROM post WHERE id = ?`
 	row := db.QueryRow(queryPost, id)
-	err := row.Scan(&post.ID, &post.Title, &post.Content, &post.AuthorID)
+	err := row.Scan(&post.ID, &post.Title, &post.Content, &post.AuthorID, &post.CreatedAt)
 	if err != nil {
 		return Post{}, []comments.CommentResponse{}, users.User{}, err
 	}
@@ -93,14 +93,14 @@ func GetPostData(db *sql.DB, id int) (Post, []comments.CommentResponse, users.Us
 func GetCommentsByPostId(db *sql.DB, postId int) []comments.CommentResponse {
 	var coms []comments.CommentResponse
 	var comment comments.CommentResponse
-	sqlQuery := `SELECT id, authorid, content FROM comments WHERE postid = ?`
+	sqlQuery := `SELECT id, authorid, content, createdat FROM comments WHERE postid = ?`
 	rows, err := db.Query(sqlQuery, postId)
 	if err != nil {
 		return []comments.CommentResponse{}
 	}
 	defer rows.Close()
 	for rows.Next() {
-		if err := rows.Scan(&comment.ID, &comment.AuthorID, &comment.Content); err != nil {
+		if err := rows.Scan(&comment.ID, &comment.AuthorID, &comment.Content, &comment.CreatedAt); err != nil {
 			if err == sql.ErrNoRows {
 				return []comments.CommentResponse{}
 			}

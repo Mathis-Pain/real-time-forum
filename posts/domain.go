@@ -7,11 +7,11 @@ import (
 )
 
 type Post struct {
-	ID          int    `json:"id"`
-	Title       string `json:"title"`
-	Content     string `json:"content"`
-	AuthorID    int    `json:"authorid"`
-	CreatedAt   time.Time
+	ID          int       `json:"id"`
+	Title       string    `json:"title"`
+	Content     string    `json:"content"`
+	AuthorID    int       `json:"authorid"`
+	CreatedAt   time.Time `json:"createdat"`
 	UpdatedAt   time.Time
 	CategoryIDs []int `json:"category_ids"`
 }
@@ -22,4 +22,5 @@ type PostResponse struct {
 	Post          Post                       `json:"post"`
 	Comments      []comments.CommentResponse `json:"comments"`
 	Author        users.User                 `json:"author"`
+	CreatedAt     time.Time                  `json:"createdat"`
 }
