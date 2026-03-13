@@ -51,7 +51,7 @@ func WsHandler(w http.ResponseWriter, r *http.Request) {
 	client := &Client{
 		UserName: userName,
 		Conn:     conn,
-		Send:     make(chan []byte),
+		Send:     make(chan []byte, 256),
 	}
 
 	HubInstance.Register <- client

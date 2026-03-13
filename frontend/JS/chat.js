@@ -6,7 +6,7 @@ import {
   pendingNotifications
 } from './layout.js'
 let isLoading = false // Empêche les doubles requêtes
-let socket = null
+export let socket = null
 let currentChatUser = null
 let currentOffset = 0 // Suivi du nombre de messages chargés
 let isProgrammaticScroll = false
@@ -21,6 +21,7 @@ export function initWebSocket() {
 
   socket.onmessage = (event) => {
     const data = JSON.parse(event.data)
+    console.log('WebSocket message received:', data)
 
     if (data.type === 'private_message') {
       console.log(data)

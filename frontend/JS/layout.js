@@ -2,6 +2,7 @@ import {renderCreatePost, loadCategories} from './post-service.js'
 import {Logout} from './authentication.js'
 import {postLayout} from './display-post-comments.js'
 import {openChatWith} from './chat.js'
+import {socket} from './chat.js'
 
 const header = document.getElementById('header')
 const main = document.getElementById('main-content')
@@ -45,6 +46,7 @@ function buildHeader() {
   })
 
   document.getElementById('logoutBtn').addEventListener('click', async () => {
+    socket.close()
     try {
       const response = await fetch('/logout', {
         method: 'POST',
@@ -78,7 +80,6 @@ async function buildSidebar(client) {
   await loadAllUsers(client) // attendre que les users soient dans le DOM
 }
 
-let lastOnlineUsers = []
 let pendingNotifications = new Set() // Pour garder en mémoire durant la reconstruction qui a reçut un nouveau message.
 
 // Charger tous les utilisateurs depuis l'API
@@ -136,7 +137,6 @@ async function loadAllUsers(client) {
 
       usersList.appendChild(userEl)
     })
-    updateUsersList(lastOnlineUsers)
   } catch (error) {
     console.error('Erreur chargement utilisateurs:', error)
   }
@@ -144,7 +144,6 @@ async function loadAllUsers(client) {
 
 //  Mettre à jour les statuts (en ligne/hors ligne)
 export function updateUsersList(onlineUsers) {
-  lastOnlineUsers = onlineUsers
   const usersList = document.querySelector('.users-list')
   if (!usersList) {
     console.error(' .users-list introuvable')
