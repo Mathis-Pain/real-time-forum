@@ -33,16 +33,23 @@ type Client struct {
 	Send     chan []byte
 }
 
+// ajout pour typing
+type DirectMessage struct {
+	To   string
+	Data []byte
+}
 type Hub struct {
 	Clients    map[string]*Client
 	Register   chan *Client
 	Unregister chan *Client
+	Send       chan DirectMessage // ajout pour typing
 }
 
 var HubInstance = Hub{
 	Clients:    make(map[string]*Client),
 	Register:   make(chan *Client),
 	Unregister: make(chan *Client),
+	Send:       make(chan DirectMessage, 256), // ajout pour typing
 }
 
 type IncomingMessage struct {

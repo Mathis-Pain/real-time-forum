@@ -39,6 +39,11 @@ func (h *Hub) Run() {
 				h.broadcastOnlineUsers()
 				log.Printf("User disconnected: %s\n", client.UserName)
 			}
+			// ajouter pour typing
+		case dm := <-h.Send:
+			if client, ok := h.Clients[dm.To]; ok {
+				client.Send <- dm.Data
+			}
 		}
 	}
 }

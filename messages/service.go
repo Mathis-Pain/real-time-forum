@@ -78,9 +78,12 @@ func readPump(c *Client) {
 			log.Printf("Invalid JSON: %v\n", err)
 			continue
 		}
-
-		if incoming.Type == "private_message" {
+		// ajout du switch case pour typing
+		switch incoming.Type {
+		case "private_message":
 			handlePrivateMessage(c, incoming)
+		case "typing":
+			handleTyping(c, incoming)
 		}
 	}
 }
@@ -95,7 +98,6 @@ func writePump(c *Client) {
 }
 
 func handlePrivateMessage(sender *Client, in IncomingMessage) {
-	// 1. Écrire en BDD
 	query := `INSERT INTO messages (SenderID, ReceiverID, Content, CreatedAt) 
               VALUES (?, ?, ?, CURRENT_TIMESTAMP)`
 	_, err := db.Exec(query, sender.UserName, in.To, in.Content)
@@ -104,29 +106,34 @@ func handlePrivateMessage(sender *Client, in IncomingMessage) {
 		return
 	}
 
-	// 2. Construire le message de sortie
-	now := time.Now()
-	out := OutgoingMessage{
+	data, err := json.Marshal(OutgoingMessage{
 		Type:      "private_message",
 		From:      sender.UserName,
 		To:        in.To,
 		Content:   in.Content,
-		CreatedAt: now,
-	}
-
-	data, err := json.Marshal(out)
+		CreatedAt: time.Now(),
+	})
 	if err != nil {
 		log.Printf("JSON marshal error: %v\n", err)
 		return
 	}
 
-	// 3. Envoyer au sender
-	if client, ok := HubInstance.Clients[sender.UserName]; ok {
-		client.Send <- data
+	//  Plus d'accès direct à h.Clients
+	HubInstance.Send <- DirectMessage{To: sender.UserName, Data: data}
+	HubInstance.Send <- DirectMessage{To: in.To, Data: data}
+}
+
+func handleTyping(sender *Client, in IncomingMessage) {
+	data, err := json.Marshal(OutgoingMessage{
+		Type: "typing",
+		From: sender.UserName,
+		To:   in.To,
+	})
+	if err != nil {
+		log.Printf("JSON marshal error: %v\n", err)
+		return
 	}
 
-	// 4. Envoyer au receiver s'il est connecté
-	if client, ok := HubInstance.Clients[in.To]; ok {
-		client.Send <- data
-	}
+	//  Uniquement au destinataire
+	HubInstance.Send <- DirectMessage{To: in.To, Data: data}
 }

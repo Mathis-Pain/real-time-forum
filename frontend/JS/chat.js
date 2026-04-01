@@ -10,8 +10,16 @@ export let socket = null
 let currentChatUser = null
 let currentOffset = 0 // Suivi du nombre de messages chargés
 let isProgrammaticScroll = false
-export let onlineUsers = []
+let onlineUsers = []
+// Variable timeout pour cacher l'indicateur "typing" après 2 secondes d'inactivité
+let typingTimeout = null
+// Horodatage pour limiter l'envoi de l'événement "typing" (ne pas spammer le serveur)
+let lastTypingTime = 0
 const LIMIT = 10 // Nombre de messages par "paquet"
+
+export function getOnlineUsers() {
+  return onlineUsers
+}
 
 export function initWebSocket() {
   socket = new WebSocket(`ws://${window.location.host}/ws`)
@@ -29,6 +37,11 @@ export function initWebSocket() {
       handleIncomingPrivateMessage(data)
     }
 
+    // Interception de l'événement WebSocket "typing" pour afficher l'indicateur
+    if (data.type === 'typing') {
+      handleIncomingTyping(data)
+    }
+
     if (data.type === 'online_users') {
       onlineUsers = data.users
       updateUsersList(data.users)
@@ -36,6 +49,21 @@ export function initWebSocket() {
   }
   socket.onclose = () => {
     console.log('WebSocket closed')
+  }
+}
+
+// Fonction appelée lors de la réception d'un événement "typing".
+// Elle affiche l'indicateur textuel et le masque automatiquement après 2 secondes sans nouvelle frappe.
+function handleIncomingTyping(msg) {
+  if (currentChatUser && msg.from === currentChatUser) {
+    const typingIndicator = document.getElementById('typing-indicator')
+    if (typingIndicator) {
+      typingIndicator.style.display = 'block'
+      clearTimeout(typingTimeout)
+      typingTimeout = setTimeout(() => {
+        typingIndicator.style.display = 'none'
+      }, 2000)
+    }
   }
 }
 
@@ -71,6 +99,10 @@ export function openChatWith(userName) {
         <div class="messages">
           <div class="conversation">
             <div class="message-received"></div>
+            <!-- Élément d'interface "typing indicator" initialement caché, affiché temporairement lors de la réception du signal -->
+            <div id="typing-indicator" style="display: none; align-self: flex-start; margin-left: 10px; color: gray; font-style: italic; font-size: 0.9rem;">
+              ${userName} est en train d'écrire<span class="typing-dot">.</span><span class="typing-dot">.</span><span class="typing-dot">.</span>
+            </div>
             <div class="message-content">
               <textarea class="message-sender" placeholder="Écris ton message..."></textarea>
             </div>
@@ -103,6 +135,17 @@ export function openChatWith(userName) {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
       sendMessage(userName, textarea)
+    }
+  })
+  // Écouteur sur la zone de texte pour détecter la frappe de l'utilisateur.
+  // Envoie un signal "typing" via WebSocket, limité à un envoi par seconde.
+  textarea.addEventListener('input', () => {
+    const now = Date.now()
+    if (now - lastTypingTime > 1000) {
+      if (socket && socket.readyState === WebSocket.OPEN) {
+        socket.send(JSON.stringify({ type: 'typing', to: userName }))
+      }
+      lastTypingTime = now
     }
   })
 }
